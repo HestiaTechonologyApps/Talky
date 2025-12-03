@@ -53,7 +53,7 @@ const Sidebar: React.FC = () => {
                 style={{
                     width: hovered ? "200px" : "70px",
                     minHeight: "100vh",
-                    backgroundColor: "rgba(139,92,246,1)",
+                    backgroundColor: "#a80606",
                     transition: "width 0.3s",
                     zIndex: 1000,
                 }}
@@ -260,7 +260,7 @@ const Sidebar: React.FC = () => {
                             style={{
                                 fontSize: "16px",
                                 textDecoration: "none",
-                                backgroundColor: "#1b6668ff",
+                                backgroundColor: "#8B0000",
                                 cursor: "pointer",
                             }}
                         >
@@ -276,7 +276,7 @@ const Sidebar: React.FC = () => {
                 fixed="bottom"
                 expand="md"
                 className="d-md-none"
-                style={{ backgroundColor: "#18575A" }}
+                style={{ backgroundColor: "#a80606" }}
             >
                 <Container fluid className="justify-content-around">
                     <div
@@ -321,7 +321,7 @@ const Sidebar: React.FC = () => {
             width: 8px;
           }
           .admin-sidebar-scroll::-webkit-scrollbar-thumb {
-            background: rgba(192,213,214,0.9);
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 6px;
           }
           .admin-sidebar-scroll::-webkit-scrollbar-track {
