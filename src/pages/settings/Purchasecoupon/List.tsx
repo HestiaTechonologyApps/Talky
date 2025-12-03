@@ -9,13 +9,32 @@ import KiduTable from "../../../components/KiduTable";
 //import KiduLoader from "components/KiduLoader";
 
 // Table Columns
+const formatDate = (dateValue: string | Date | null | undefined): string => {
+    if (!dateValue) return "-";
+  
+    const date = new Date(dateValue);
+  
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = date.toLocaleString("en-US", { month: "long" }); // Full month name
+    const year = date.getFullYear();
+  
+    return `${day}-${month}-${year}`;
+  };
+  
+  
+  
 const columns = [
   { label: "ID", key: "purchaseCouponId" },
   { label: "Coins", key: "coins" },
   { label: "Amount", key: "amount" },
   { label: "Past Amount", key: "pastAmount" },
   { label: "Status", key: "isActive" },
-  { label: "Created Date", key: "createdAt" },
+  {
+    label: "Created Date",
+    key: "createdAt",
+    render: (value: string) => formatDate(value),
+  },
+  
 ];
 
 const PurchaseCouponPage: React.FC = () => {
@@ -26,12 +45,20 @@ const PurchaseCouponPage: React.FC = () => {
   const loadCoupons = useCallback(async () => {
     try {
       setLoading(true);
-
+  
       const response = await PurchaseCouponService.getAllCoupons();
-
+  
       if (response && Array.isArray(response)) {
-        setCouponList(response);
+  
+        // Format dates here before passing to table
+        const formattedData = response.map(coupon => ({
+          ...coupon,
+          createdAt: formatDate(coupon.createdAt)
+        }));
+  
+        setCouponList(formattedData);
         setError(null);
+  
       } else {
         setError("Failed to load purchase coupon data");
       }
@@ -41,6 +68,9 @@ const PurchaseCouponPage: React.FC = () => {
       setLoading(false);
     }
   }, []);
+  
+  
+  
 
   useEffect(() => {
     loadCoupons();
@@ -56,8 +86,8 @@ const PurchaseCouponPage: React.FC = () => {
       addButtonLabel="Add New Coupon"
       columns={columns}
       idKey="purchaseCouponId"
-      addRoute="/Purchase-Coupon/AddPurchaseCoupon"
-      editRoute="/Purchase-Coupon/PurchaseCouponEdit"   // KiduTable will append /id
+      addRoute="/dashboard/settings/create-purchasecoupon"
+      editRoute="/dashboard/settings/edit-purchasecoupon"   // KiduTable will append /id
       viewRoute="/Purchase-Coupon/PurchaseCouponView"   // KiduTable will append /id
       error={error}
       onRetry={loadCoupons}

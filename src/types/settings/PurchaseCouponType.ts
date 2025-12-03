@@ -14,4 +14,6 @@ export interface CustomResponse<T> {
     description: string;
     createdAt:string|Date;
     createdAppUserId?:number;
+
+    [key: string]: any;
   }
