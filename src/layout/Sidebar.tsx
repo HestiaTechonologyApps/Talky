@@ -19,7 +19,7 @@ const Sidebar: React.FC = () => {
     ];
 
     const staffsSubMenu = [
-        { label: "Staff List", path: "/dashboard/staffs/staff-list" },
+        { label: "Staff List", path: "/dashboard/staff/staff-list" },
         { label: "Staff TYC", path: "/dashboard/staffs/staff-tyc" },
         { label: "Staff Reports", path: "/dashboard/staffs/staff-reports" },
     ];

@@ -1,7 +1,18 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Table, Button, Row, Col, Container, Pagination } from "react-bootstrap";
-import { FaEdit, FaEye } from "react-icons/fa";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { Button, Row, Col, Container, Pagination } from "react-bootstrap";
+import { FaEdit, FaEye, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  flexRender,
+  SortingState,
+  ColumnFiltersState,
+  ColumnDef,
+} from "@tanstack/react-table";
 import KiduLoader from "../KiduLoader";
 import KiduSearchBar from "../KiduSearchBar";
 import KiduButton from "../KiduButton";
@@ -11,6 +22,8 @@ import KiduPopupButton from "../KiduPopupButton";
 interface Column {
   key: string;
   label: string;
+  enableSorting?: boolean;
+  enableFiltering?: boolean;
 }
 
 interface KiduServerTableProps {
@@ -68,53 +81,57 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // React Table states
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+
   const totalPages = Math.ceil(total / rowsPerPage);
 
-  // Memoize loadData to prevent unnecessary recreations
-  const loadData = useCallback(async (page: number, search: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log("🔄 KiduServerTable - Loading data for:", { 
-        page, 
-        search, 
-        rowsPerPage 
-      });
-      
-      const result = await fetchData({
-        pageNumber: page,
-        pageSize: rowsPerPage,
-        searchTerm: search,
-      });
-      
-      console.log("📊 KiduServerTable - Received data:", {
-        dataLength: result.data?.length,
-        total: result.total,
-        firstItem: result.data?.[0]
-      });
-      
-      setData(result.data || []);
-      setTotal(result.total || 0);
-      
-    } catch (err: any) {
-      console.error("❌ KiduServerTable - Error:", err);
-      setError(err.message || "Failed to load data");
-      setData([]);
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchData, rowsPerPage]);
+  const loadData = useCallback(
+    async (page: number, search: string) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  // Load data on mount
+        console.log("🔄 KiduServerTable - Loading data for:", {
+          page,
+          search,
+          rowsPerPage,
+        });
+
+        const result = await fetchData({
+          pageNumber: page,
+          pageSize: rowsPerPage,
+          searchTerm: search,
+        });
+
+        console.log("📊 KiduServerTable - Received data:", {
+          dataLength: result.data?.length,
+          total: result.total,
+          firstItem: result.data?.[0],
+        });
+
+        setData(result.data || []);
+        setTotal(result.total || 0);
+      } catch (err: any) {
+        console.error("❌ KiduServerTable - Error:", err);
+        setError(err.message || "Failed to load data");
+        setData([]);
+        setTotal(0);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchData, rowsPerPage]
+  );
+
   useEffect(() => {
     console.log("🚀 KiduServerTable - Initial load");
     loadData(currentPage, searchTerm);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadData]);
 
-  // Debounced search - reset to page 1 when searching
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchTerm !== "" || currentPage !== 1) {
@@ -125,16 +142,120 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, loadData]);
 
-  // Load data on page change
   useEffect(() => {
     if (currentPage !== 1 || searchTerm !== "") {
       console.log("📄 KiduServerTable - Page changed:", currentPage);
       loadData(currentPage, searchTerm);
     }
   }, [currentPage, loadData, searchTerm]);
+
+  // Define columns for React Table
+  const tableColumns = useMemo<ColumnDef<any>[]>(() => {
+    const cols: ColumnDef<any>[] = columns.map((col) => ({
+      accessorKey: col.key,
+      header: col.label,
+      enableSorting: col.enableSorting !== false,
+      enableColumnFilter: col.enableFiltering !== false,
+      cell: ({ getValue, row }) => {
+        const value = getValue();
+        if (col.key === "profile") {
+          return (
+            <img
+              src={(value as string) || "/assets/Images/profile.jpeg"}
+              alt="Profile"
+              style={{ width: 45, height: 45, borderRadius: "50%" }}
+            />
+          );
+        }
+        return value as string;
+      },
+    }));
+
+    // Add actions column
+    if (showActions) {
+      cols.push({
+        id: "actions",
+        header: () => (
+          <div className="d-flex justify-content-between align-items-center w-100">
+            <span className="ms-5">Action</span>
+            {showExport && total > 0 && (
+              <div>
+                <KiduExcelButton data={data} title={title} />
+              </div>
+            )}
+          </div>
+        ),
+        enableSorting: false,
+        enableColumnFilter: false,
+        cell: ({ row }) => (
+          <div
+            className="d-flex justify-content-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {editRoute && (
+              <Button
+                size="sm"
+                style={{
+                  backgroundColor: "transparent",
+                  border: "1px solid #18575A",
+                  color: "#18575A",
+                  fontSize: "13px",
+                  padding: "4px 8px",
+                }}
+                onClick={() => {
+                  navigate(`${editRoute}/${row.original[idKey]}`);
+                }}
+              >
+                <FaEdit className="me-1" /> Edit
+              </Button>
+            )}
+
+            {viewRoute && (
+              <Button
+                size="sm"
+                style={{
+                  backgroundColor: "#18575A",
+                  border: "none",
+                  color: "white",
+                  fontSize: "13px",
+                  padding: "4px 8px",
+                }}
+                onClick={() => {
+                  navigate(`${viewRoute}/${row.original[idKey]}`);
+                }}
+              >
+                <FaEye className="me-1" /> View
+              </Button>
+            )}
+          </div>
+        ),
+      });
+    }
+
+    return cols;
+  }, [columns, showActions, showExport, total, data, title, editRoute, viewRoute, navigate, idKey]);
+
+  // Create React Table instance
+  const table = useReactTable({
+    data,
+    columns: tableColumns,
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+    },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: false,
+  });
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -157,7 +278,10 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
     return (
       <Container fluid className="py-3 mt-5">
         <div className="alert alert-danger">{error}</div>
-        <Button onClick={handleRetry} style={{ backgroundColor: "#18575A", border: "none" }}>
+        <Button
+          onClick={handleRetry}
+          style={{ backgroundColor: "#18575A", border: "none" }}
+        >
           Retry
         </Button>
       </Container>
@@ -199,7 +323,12 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                 label={`+ ${addButtonLabel}`}
                 to={addRoute}
                 className="fw-bold d-flex align-items-center text-white"
-                style={{ backgroundColor: "#18575A", border: "none", height: 45, width: 200 }}
+                style={{
+                  backgroundColor: "#18575A",
+                  border: "none",
+                  height: 45,
+                  width: 200,
+                }}
               />
             </Col>
           )}
@@ -209,41 +338,69 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
       <Row>
         <Col>
           <div ref={tableRef} className="table-responsive">
-            <Table striped bordered hover className="align-middle mb-0">
-              <thead className="table-light text-center" style={{ fontFamily: "Urbanist" }}>
-                <tr>
-                  {columns.map((col) => (
-                    <th key={col.key}>{col.label}</th>
-                  ))}
-                  {showActions && (
-                    <th className="d-flex justify-content-between">
-                      <div className="ms-5 mt-2">Action</div>
-                      {showExport && total > 0 && (
-                        <div className="mt-1">
-                          <KiduExcelButton data={data} title={title} />
+            <table
+              className="table table-striped table-bordered table-hover align-middle mb-0"
+              style={{ fontSize: "14px" }}
+            >
+              <thead
+                className="table-light text-center"
+                style={{ fontFamily: "Urbanist" }}
+              >
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        style={{ padding: "10px 12px", cursor: header.column.getCanSort() ? "pointer" : "default" }}
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <div className="d-flex align-items-center justify-content-center gap-2">
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          {header.column.getCanSort() && (
+                            <span>
+                              {header.column.getIsSorted() === "asc" ? (
+                                <FaSortUp />
+                              ) : header.column.getIsSorted() === "desc" ? (
+                                <FaSortDown />
+                              ) : (
+                                <FaSort style={{ opacity: 0.3 }} />
+                              )}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </th>
-                  )}
-                </tr>
+                      </th>
+                    ))}
+                  </tr>
+                ))}
               </thead>
 
-              <tbody className="text-center" style={{ fontFamily: "Urbanist", fontSize: 15 }}>
+              <tbody
+                className="text-center"
+                style={{ fontFamily: "Urbanist" }}
+              >
                 {loading ? (
                   <tr>
-                    <td colSpan={columns.length + (showActions ? 1 : 0)} className="text-center py-5">
+                    <td
+                      colSpan={tableColumns.length}
+                      className="text-center py-5"
+                    >
                       <KiduLoader type="trip..." />
                     </td>
                   </tr>
-                ) : data.length === 0 ? (
+                ) : table.getRowModel().rows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={columns.length + (showActions ? 1 : 0)}
+                      colSpan={tableColumns.length}
                       className="text-center py-5"
                       style={{ border: "2px solid #dee2e6" }}
                     >
                       <div className="d-flex flex-column justify-content-center align-items-center">
-                        <p className="text-muted mb-3">No matching records found</p>
+                        <p className="text-muted mb-3">
+                          No matching records found
+                        </p>
 
                         {showKiduPopupButton && addRoute && (
                           <KiduPopupButton
@@ -258,80 +415,52 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                     </td>
                   </tr>
                 ) : (
-                  data.map((item, index) => (
+                  table.getRowModel().rows.map((row) => (
                     <tr
-                      key={`${item[idKey]}-${index}`}
-                      onClick={() => onRowClick?.(item)}
-                      style={{ cursor: onRowClick ? "pointer" : "default" }}
+                      key={row.id}
+                      onClick={() => onRowClick?.(row.original)}
+                      style={{
+                        cursor: onRowClick ? "pointer" : "default",
+                        lineHeight: "1.2",
+                      }}
                     >
-                      {columns.map((col) => (
-                        <td key={`${item[idKey]}-${col.key}`}>
-                          {col.key === "profile" ? (
-                            <img
-                              src={item[col.key] || "/assets/Images/profile.jpeg"}
-                              alt="Profile"
-                              style={{ width: 45, height: 45, borderRadius: "50%" }}
-                            />
-                          ) : (
-                            item[col.key]
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          style={{ padding: "8px 12px" }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
                           )}
                         </td>
                       ))}
-
-                      {showActions && (
-                        <td className="text-center" onClick={(e) => e.stopPropagation()}>
-                          <div className="d-flex justify-content-center gap-2">
-                            {editRoute && (
-                              <Button
-                                size="sm"
-                                style={{
-                                  backgroundColor: "transparent",
-                                  border: "1px solid #18575A",
-                                  color: "#18575A",
-                                }}
-                                onClick={() => {
-                                  navigate(`${editRoute}/${item[idKey]}`);
-                                }}
-                              >
-                                <FaEdit className="me-1" /> Edit
-                              </Button>
-                            )}
-
-                            {viewRoute && (
-                              <Button
-                                size="sm"
-                                style={{
-                                  backgroundColor: "#18575A",
-                                  border: "none",
-                                  color: "white",
-                                }}
-                                onClick={() => {
-                                  navigate(`${viewRoute}/${item[idKey]}`);
-                                }}
-                              >
-                                <FaEye className="me-1" /> View
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      )}
                     </tr>
                   ))
                 )}
               </tbody>
-            </Table>
+            </table>
           </div>
         </Col>
       </Row>
 
       {totalPages > 1 && (
         <div className="d-flex justify-content-between align-items-center mt-4 px-2">
-          <span style={{ fontFamily: "Urbanist", color: "#18575A", fontWeight: 600 }}>
+          <span
+            style={{
+              fontFamily: "Urbanist",
+              color: "#18575A",
+              fontWeight: 600,
+            }}
+          >
             Page {currentPage} of {totalPages} (Total: {total} records)
           </span>
 
           <Pagination className="m-0">
-            <Pagination.First disabled={currentPage === 1} onClick={() => handlePageChange(1)} />
+            <Pagination.First
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(1)}
+            />
             <Pagination.Prev
               disabled={currentPage === 1}
               onClick={() => handlePageChange(currentPage - 1)}
@@ -354,7 +483,8 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                   active={pageNum === currentPage}
                   onClick={() => handlePageChange(pageNum)}
                   style={{
-                    backgroundColor: pageNum === currentPage ? "#18575A" : "white",
+                    backgroundColor:
+                      pageNum === currentPage ? "#18575A" : "white",
                     borderColor: "#18575A",
                     color: pageNum === currentPage ? "white" : "#18575A",
                   }}

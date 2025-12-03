@@ -1,11 +1,7 @@
-import React from 'react'
-
-
-
 import HttpService from '../common/HttpService';
-import { CustomResponse, StaffModel } from '../../types/Staff/StaffType';
+import { StaffModel } from '../../types/Staff/StaffType';
 import { API_ENDPOINTS } from '../../constants/API_ENDPOINTS';
-import { User } from '../../types/ApiTypes';
+import { CustomResponse, User } from '../../types/ApiTypes';
 
 
 const StaffService = {

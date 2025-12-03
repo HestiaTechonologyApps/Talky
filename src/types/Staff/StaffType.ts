@@ -1,14 +1,9 @@
 
-
-export interface CustomResponse<T> {
-    statusCode: number;
-    error: string | null;
-    customMessage: string;
-    isSucess: boolean;
-    value: T;
-  }
-
   export interface StaffModel{
+      message: any;
+      customMessage: any;
+      isSucess: boolean;
+      success: boolean;
    
       staffUserId?: number;
       appUserId: number;
