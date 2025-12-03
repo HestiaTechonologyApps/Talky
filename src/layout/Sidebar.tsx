@@ -34,7 +34,7 @@ const Sidebar: React.FC = () => {
         {label:"Company", path: "/dashboard/settings/company-list"},
         { label: "Company Branch", path: "/dashboard/settings/company-branch" },
         { label: "System Config", path: "/dashboard/settings/system-config" },
-        { label: "Purchase Coupon", path: "/dashboard/settings/purchase-coupon" },
+        { label: "Purchase Coupon", path: "/dashboard/settings/purchase-coupon-list"},
         { label: "Financial Year", path: "/dashboard/settings/financial-year" },
         { label: "App Notification", path: "/dashboard/settings/app-notification" },
     ];

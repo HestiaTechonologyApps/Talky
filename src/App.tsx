@@ -80,6 +80,9 @@ import ExpenseTypeList from './pages/settings/expenseType/List';
 import CreateExpenseType from './pages/settings/expenseType/Create';
 import EditExpenseType from './pages/settings/expenseType/Edit';
 import ViewExpenseType from './pages/settings/expenseType/View';
+//purchase-coupon
+import PurchaseCouponList from './pages/settings/Purchasecoupon/List';
+
 
 function App() {
 
@@ -165,6 +168,8 @@ function App() {
           <Route path="settings/create-expenses-type" element={<CreateExpenseType />} />
           <Route path="settings/edit-expenses-type/:expenseTypeId" element={<EditExpenseType />} />
           <Route path="settings/view-expenses-type/:expenseTypeId" element={<ViewExpenseType />} />
+          {/* Purchase Coupon */}
+          <Route path="settings/purchase-coupon-list" element={<PurchaseCouponList />} />
 
         </Route>
         {/* Catch-All Route for 404 */}
