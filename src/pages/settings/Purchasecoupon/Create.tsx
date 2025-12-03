@@ -38,7 +38,7 @@ const CreatePurchaseCoupon: React.FC = () => {
   const fieldRules: any = {
     coins: { required: true, type: "number", label: "Coins" },
     amount: { required: true, type: "number", label: "Amount" },
-    pastAmount: { required: true, type: "number", label: "Past Amount" },
+    pastAmount: {  type: "number", label: "Past Amount" },
     description: {
       required: true,
       type: "text",
