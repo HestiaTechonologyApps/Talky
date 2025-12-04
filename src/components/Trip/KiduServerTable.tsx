@@ -24,6 +24,7 @@ interface Column {
   label: string;
   enableSorting?: boolean;
   enableFiltering?: boolean;
+  type?: 'text' | 'checkbox' | 'image' | 'rating' | 'date'; // Add type field
 }
 
 interface KiduServerTableProps {
@@ -60,7 +61,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
   addRoute,
   viewRoute,
   editRoute,
-  showAddButton = true,
+  showAddButton = false, // ✅ Changed default to false
   showKiduPopupButton = false,
   showExport = true,
   onRowClick,
@@ -94,22 +95,10 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
         setLoading(true);
         setError(null);
 
-        console.log("🔄 KiduServerTable - Loading data for:", {
-          page,
-          search,
-          rowsPerPage,
-        });
-
         const result = await fetchData({
           pageNumber: page,
           pageSize: rowsPerPage,
           searchTerm: search,
-        });
-
-        console.log("📊 KiduServerTable - Received data:", {
-          dataLength: result.data?.length,
-          total: result.total,
-          firstItem: result.data?.[0],
         });
 
         setData(result.data || []);
@@ -127,26 +116,17 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
   );
 
   useEffect(() => {
-    console.log("🚀 KiduServerTable - Initial load");
     loadData(currentPage, searchTerm);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadData]);
+  }, [loadData, currentPage, searchTerm]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      console.log("🔍 KiduServerTable - Search triggered:", searchTerm);
       setCurrentPage(1);
       loadData(1, searchTerm);
     }, 500);
 
     return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, loadData]);
-
-  useEffect(() => {
-    console.log("📄 KiduServerTable - Page changed:", currentPage);
-    loadData(currentPage, searchTerm);
-  }, [currentPage, loadData, searchTerm]);
 
   // Define columns for React Table
   const tableColumns = useMemo<ColumnDef<any>[]>(() => {
@@ -162,158 +142,117 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
         if (rawValue === null || rawValue === undefined || rawValue === '') {
           return '-';
         }
-        
-        // Handle profile image column
-        if (col.key === "profile") {
-          const imageSrc = typeof rawValue === 'string' ? rawValue : "/assets/Images/profile.jpeg";
-          return (
-            <img
-              src={imageSrc}
-              alt="Profile"
-              style={{ 
-                width: 45, 
-                height: 45, 
-                borderRadius: "50%",
-                objectFit: "cover" 
-              }}
-            />
-          );
-        }
-        
-        // Handle star rating column - display as visual stars
-        if (col.key === "starRating" || col.key.toLowerCase().includes("rating")) {
-          let rating: number = 0;
-          
-          if (typeof rawValue === 'number') {
-            rating = rawValue;
-          } else if (typeof rawValue === 'string') {
-            // Try to extract numeric rating from string
-            const match = rawValue.match(/(\d+(\.\d+)?)/);
-            rating = match ? parseFloat(match[1]) : 0;
-          }
-          
-          // Ensure rating is between 0 and 5
-          rating = Math.min(Math.max(rating, 0), 5);
-          
-          const fullStars = Math.floor(rating);
-          const hasHalfStar = rating - fullStars >= 0.5;
-          const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-          
-          return (
-            <div style={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center',
-              gap: '2px' 
-            }}>
-              {/* Full stars */}
-              {Array.from({ length: fullStars }).map((_, i) => (
-                <span key={`full-${i}`} style={{ color: '#FFD700', fontSize: '16px' }}>
-                  ★
-                </span>
-              ))}
-              
-              {/* Half star */}
-              {hasHalfStar && (
-                <span style={{ 
-                  position: 'relative',
-                  display: 'inline-block',
-                  width: '16px',
-                  height: '16px'
-                }}>
-                  <span style={{ 
-                    position: 'absolute', 
-                    color: '#e0e0e0', 
-                    fontSize: '16px',
-                    zIndex: 1 
-                  }}>
-                    ★
-                  </span>
-                  <span style={{ 
-                    position: 'absolute', 
-                    color: '#FFD700', 
-                    fontSize: '16px',
-                    width: '50%',
-                    overflow: 'hidden',
-                    zIndex: 2 
-                  }}>
-                    ★
-                  </span>
-                </span>
-              )}
-              
-              {/* Empty stars */}
-              {Array.from({ length: emptyStars }).map((_, i) => (
-                <span key={`empty-${i}`} style={{ color: '#e0e0e0', fontSize: '16px' }}>
-                  ★
-                </span>
-              ))}
-              
-              {/* Numeric rating */}
-              <span style={{ 
-                marginLeft: '6px', 
-                fontSize: '12px', 
-                color: '#666',
-                fontWeight: 500 
-              }}>
-                ({rating.toFixed(1)})
-              </span>
-            </div>
-          );
-        }
-        
-        // Handle boolean fields (like isBlocked) to show as disabled checkboxes
-        const isBooleanField = col.key.toLowerCase().includes('blocked') || 
-                             col.key.toLowerCase().includes('isactive') ||
-                             col.key.toLowerCase().includes('isenabled') ||
-                             col.key.toLowerCase().includes('status');
-        
-        if (isBooleanField) {
-          // Convert value to boolean
-          let boolValue = false;
-          if (typeof rawValue === 'boolean') {
-            boolValue = rawValue;
-          } else if (typeof rawValue === 'string') {
-            boolValue = rawValue.toLowerCase() === 'true' || rawValue === '1' || rawValue === '✓';
-          } else if (typeof rawValue === 'number') {
-            boolValue = rawValue !== 0;
-          }
-          
-          return (
-            <input 
-              type="checkbox" 
-              checked={boolValue} 
-              disabled 
-              style={{
-                width: '18px',
-                height: '18px',
-                cursor: 'not-allowed',
-                accentColor: '#18575A'
-              }}
-            />
-          );
-        }
-        
-        // Handle date fields
-        if (col.key.toLowerCase().includes('date')) {
-          try {
-            // Convert value to string for Date parsing
-            const valueStr = String(rawValue);
-            const date = new Date(valueStr);
-            
-            if (!isNaN(date.getTime())) {
-              return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-              });
+
+        // Handle based on column type
+        switch (col.type) {
+          case 'checkbox':
+            // Only for checkbox type columns (like isBlocked)
+            let boolValue = false;
+            if (typeof rawValue === 'boolean') {
+              boolValue = rawValue;
+            } else if (typeof rawValue === 'string') {
+              boolValue = rawValue.toLowerCase() === 'true' || rawValue === '1';
+            } else if (typeof rawValue === 'number') {
+              boolValue = rawValue !== 0;
             }
-          } catch (e) {
-            // If date parsing fails, return original value
-          }
+            
+            return (
+              <input 
+                type="checkbox" 
+                checked={boolValue} 
+                disabled 
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  cursor: 'not-allowed',
+                  accentColor: '#18575A'
+                }}
+              />
+            );
+
+          case 'image':
+            // Handle profile images
+            const imageSrc = typeof rawValue === 'string' ? rawValue : "/assets/Images/profile.jpeg";
+            return (
+              <img
+                src={imageSrc}
+                alt="Profile"
+                style={{ 
+                  width: 40, 
+                  height: 40, 
+                  borderRadius: "50%",
+                  objectFit: "cover" 
+                }}
+              />
+            );
+
+          case 'rating':
+            // Handle star ratings
+            let rating: number = 0;
+            
+            if (typeof rawValue === 'number') {
+              rating = rawValue;
+            } else if (typeof rawValue === 'string') {
+              const match = rawValue.match(/(\d+(\.\d+)?)/);
+              rating = match ? parseFloat(match[1]) : 0;
+            }
+            
+            rating = Math.min(Math.max(rating, 0), 5);
+            
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating - fullStars >= 0.5;
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            
+            return (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                gap: '2px' 
+              }}>
+                {Array.from({ length: fullStars }).map((_, i) => (
+                  <span key={`full-${i}`} style={{ color: '#FFD700', fontSize: '14px' }}>★</span>
+                ))}
+                {hasHalfStar && (
+                  <span style={{ position: 'relative', display: 'inline-block', width: '14px', height: '14px' }}>
+                    <span style={{ position: 'absolute', color: '#e0e0e0', fontSize: '14px', zIndex: 1 }}>★</span>
+                    <span style={{ position: 'absolute', color: '#FFD700', fontSize: '14px', width: '50%', overflow: 'hidden', zIndex: 2 }}>★</span>
+                  </span>
+                )}
+                {Array.from({ length: emptyStars }).map((_, i) => (
+                  <span key={`empty-${i}`} style={{ color: '#e0e0e0', fontSize: '14px' }}>★</span>
+                ))}
+                <span style={{ marginLeft: '4px', fontSize: '11px', color: '#666', fontWeight: 500 }}>
+                  ({rating.toFixed(1)})
+                </span>
+              </div>
+            );
+
+          case 'date':
+            // Handle date formatting
+            try {
+              const valueStr = String(rawValue);
+              const date = new Date(valueStr);
+              
+              if (!isNaN(date.getTime())) {
+                return date.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                });
+              }
+            } catch (e) {
+              // If date parsing fails, return original value
+            }
+            break;
+
+          case 'text':
+          default:
+            // Default text rendering
+            return String(rawValue);
         }
         
-        // Default: return the value as string
+        // Fallback: return as string
         return String(rawValue);
       },
     }));
@@ -324,7 +263,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
         id: "actions",
         header: () => (
           <div className="d-flex justify-content-between align-items-center w-100">
-            <span className="ms-5">Action</span>
+            <span className="ms-4">Action</span>
             {showExport && total > 0 && (
               <div>
                 <KiduExcelButton data={data} title={title} />
@@ -347,12 +286,10 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                   border: "1px solid #18575A",
                   color: "#18575A",
                   fontSize: "12px",
-                  padding: "4px 8px",
+                  padding: "4px 10px",
                   fontWeight: 500,
                 }}
-                onClick={() => {
-                  navigate(`${editRoute}/${row.original[idKey]}`);
-                }}
+                onClick={() => navigate(`${editRoute}/${row.original[idKey]}`)}
               >
                 <FaEdit className="me-1" /> Edit
               </Button>
@@ -366,12 +303,10 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                   border: "none",
                   color: "white",
                   fontSize: "12px",
-                  padding: "4px 8px",
+                  padding: "4px 10px",
                   fontWeight: 500,
                 }}
-                onClick={() => {
-                  navigate(`${viewRoute}/${row.original[idKey]}`);
-                }}
+                onClick={() => navigate(`${viewRoute}/${row.original[idKey]}`)}
               >
                 <FaEye className="me-1" /> View
               </Button>
@@ -424,10 +359,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
     return (
       <Container fluid className="py-3 mt-5">
         <div className="alert alert-danger">{error}</div>
-        <Button
-          onClick={handleRetry}
-          style={{ backgroundColor: "#18575A", border: "none" }}
-        >
+        <Button onClick={handleRetry} style={{ backgroundColor: "#18575A", border: "none" }}>
           Retry
         </Button>
       </Container>
@@ -443,7 +375,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
               {title}
             </h4>
             {subtitle && (
-              <p className="text-muted" style={{ fontFamily: "Urbanist" }}>
+              <p className="text-muted mb-0" style={{ fontFamily: "Urbanist", fontSize: "14px" }}>
                 {subtitle}
               </p>
             )}
@@ -472,8 +404,9 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                 style={{
                   backgroundColor: "#18575A",
                   border: "none",
-                  height: 45,
-                  width: 200,
+                  height: 42,
+                  width: 180,
+                  fontSize: "14px"
                 }}
               />
             </Col>
@@ -488,29 +421,25 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
               className="table table-striped table-bordered table-hover align-middle mb-0"
               style={{ fontSize: "13px" }}
             >
-              <thead
-                className="table-light text-center"
-                style={{ fontFamily: "Urbanist" }}
-              >
+              <thead className="table-light text-center" style={{ fontFamily: "Urbanist" }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <th
                         key={header.id}
                         style={{ 
-                          padding: "8px 10px", 
+                          padding: "6px 8px", 
                           cursor: header.column.getCanSort() ? "pointer" : "default",
                           backgroundColor: "#f8f9fa",
                           borderBottom: "2px solid #dee2e6",
-                          verticalAlign: "middle"
+                          verticalAlign: "middle",
+                          fontSize: "13px",
+                          fontWeight: 600
                         }}
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         <div className="d-flex align-items-center justify-content-center gap-1">
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          {flexRender(header.column.columnDef.header, header.getContext())}
                           {header.column.getCanSort() && (
                             <span className="ms-1">
                               {header.column.getIsSorted() === "asc" ? (
@@ -529,16 +458,10 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                 ))}
               </thead>
 
-              <tbody
-                className="text-center"
-                style={{ fontFamily: "Urbanist" }}
-              >
+              <tbody className="text-center" style={{ fontFamily: "Urbanist" }}>
                 {loading ? (
                   <tr>
-                    <td
-                      colSpan={tableColumns.length}
-                      className="text-center py-4"
-                    >
+                    <td colSpan={tableColumns.length} className="text-center py-4">
                       <KiduLoader type="trip..." />
                     </td>
                   </tr>
@@ -550,10 +473,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                       style={{ border: "2px solid #dee2e6" }}
                     >
                       <div className="d-flex flex-column justify-content-center align-items-center">
-                        <p className="text-muted mb-2">
-                          No matching records found
-                        </p>
-
+                        <p className="text-muted mb-2">No matching records found</p>
                         {showKiduPopupButton && addRoute && (
                           <KiduPopupButton
                             label={`Add ${fieldName}`}
@@ -580,14 +500,11 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                         <td
                           key={cell.id}
                           style={{ 
-                            padding: "6px 8px",
+                            padding: "4px 6px",
                             verticalAlign: "middle"
                           }}
                         >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       ))}
                     </tr>
@@ -600,49 +517,14 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
       </Row>
 
       {totalPages > 1 && (
-        <div className="d-flex justify-content-between align-items-center mt-4">
-          <div className="d-flex align-items-center">
-            <span
-              style={{
-                fontFamily: "Urbanist",
-                color: "#18575A",
-                fontWeight: 600,
-                fontSize: "14px",
-                marginRight: "20px"
-              }}
-            >
-              Page {currentPage} of {totalPages}
-            </span>
-            <span
-              style={{
-                fontFamily: "Urbanist",
-                color: "#666",
-                fontSize: "14px",
-              }}
-            >
-              (Total: {total} records)
-            </span>
-          </div>
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <span style={{ fontFamily: "Urbanist", color: "#18575A", fontWeight: 600, fontSize: "13px" }}>
+            Page {currentPage} of {totalPages} (Total: {total} records)
+          </span>
 
-          <Pagination className="m-0">
-            <Pagination.First
-              disabled={currentPage === 1}
-              onClick={() => handlePageChange(1)}
-              style={{ 
-                padding: "6px 12px",
-                border: "1px solid #dee2e6",
-                borderRight: "none"
-              }}
-            />
-            <Pagination.Prev
-              disabled={currentPage === 1}
-              onClick={() => handlePageChange(currentPage - 1)}
-              style={{ 
-                padding: "6px 12px",
-                border: "1px solid #dee2e6",
-                borderRight: "none"
-              }}
-            />
+          <Pagination className="m-0" size="sm">
+            <Pagination.First disabled={currentPage === 1} onClick={() => handlePageChange(1)} />
+            <Pagination.Prev disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} />
             {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
               let pageNum;
               if (totalPages <= 5) {
@@ -662,37 +544,16 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                   onClick={() => handlePageChange(pageNum)}
                   style={{
                     backgroundColor: pageNum === currentPage ? "#18575A" : "transparent",
-                    border: "1px solid #dee2e6",
-                    borderRight: "none",
+                    borderColor: "#18575A",
                     color: pageNum === currentPage ? "white" : "#18575A",
-                    padding: "6px 12px",
-                    borderRadius: "0",
-                    fontWeight: pageNum === currentPage ? "bold" : "normal"
                   }}
                 >
                   {pageNum}
                 </Pagination.Item>
               );
             })}
-            <Pagination.Next
-              disabled={currentPage === totalPages}
-              onClick={() => handlePageChange(currentPage + 1)}
-              style={{ 
-                padding: "6px 12px",
-                border: "1px solid #dee2e6",
-                borderRight: "none",
-                borderLeft: "none"
-              }}
-            />
-            <Pagination.Last
-              disabled={currentPage === totalPages}
-              onClick={() => handlePageChange(totalPages)}
-              style={{ 
-                padding: "6px 12px",
-                border: "1px solid #dee2e6",
-                borderLeft: "none"
-              }}
-            />
+            <Pagination.Next disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)} />
+            <Pagination.Last disabled={currentPage === totalPages} onClick={() => handlePageChange(totalPages)} />
           </Pagination>
         </div>
       )}

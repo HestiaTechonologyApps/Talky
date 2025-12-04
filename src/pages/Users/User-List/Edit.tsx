@@ -1,18 +1,18 @@
 // src/pages/user/UserEdit.tsx
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Form, Button, Image } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Image, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
 import Select from "react-select";
 import toast, { Toaster } from "react-hot-toast";
 import { FaPen } from "react-icons/fa";
 
-//import AppUserService from "../../services/UserService";
 import AppUserService from "../../../services/AppUserServices";
 import { KiduValidation } from "../../../components/KiduValidation";
 import KiduPrevious from "../../../components/KiduPrevious";
 import KiduLoader from "../../../components/KiduLoader";
 import KiduReset from "../../../components/ReuseButtons/KiduReset";
-import { Label } from "recharts";
+import { getFullImageUrl } from "../../../constants/API_ENDPOINTS";
+import defaultProfile from "../../../assets/Images/profile.jpeg";
 
 const UserEdit: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -22,17 +22,25 @@ const UserEdit: React.FC = () => {
   const [formData, setFormData] = useState<any>({});
   const [initialValues, setInitialValues] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const baseURL = "http://sreenathganga-001-site12.jtempurl.com/";
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
 
   // ---------------------- FIELD RULES ----------------------
   const fields = [
-    { name: "name", label: "Name", rules: { required: true, type: "text" } },
-    { name: "email", label: "Email", rules: { required: true, type: "email" } },
-    { name: "walletBalance", label: "Wallet Amount", rules: { required: false, type: "number" } },
-    { name: "registeredDate", label: "Date", rules: { required: true, type: "date" } },
-    {name:"mobileNumber", label:"Mobile Number", rules:{required:true, type:"text"}}
+    { name: "name", label: "Name", rules: { required: true, type: "text" as const } },
+    { name: "email", label: "Email", rules: { required: true, type: "email" as const } },
+    { name: "walletBalance", label: "Wallet Amount", rules: { required: false, type: "number" as const } },
+    { name: "registeredDate", label: "Registered Date", rules: { required: true, type: "date" as const } },
+    { name: "mobileNumber", label: "Mobile Number", rules: { required: true, type: "tel" as const, minLength: 10, maxLength: 10 } },
+    { 
+      name: "gender", 
+      label: "Gender", 
+      rules: { 
+        required: true, 
+        type: "radio" as const, 
+        options: ["Male", "Female", "Other"] 
+      } 
+    }
   ];
 
   const interestOptions = [
@@ -69,6 +77,7 @@ const UserEdit: React.FC = () => {
           mobileNumber: res.mobileNumber || "",
           walletBalance: res.walletBalance || 0,
           status: res.status || "",
+          gender: res.gender || "",
           isBlocked: res.isBlocked || false,
           isStaff: res.isStaff || false,
           isKYCCompleted: res.isKYCCompleted || false,
@@ -78,8 +87,7 @@ const UserEdit: React.FC = () => {
           prefferedlanguage: toArray(res.prefferedlanguage),
           registeredDate: res.registeredDate
             ? new Date(res.registeredDate).toISOString().split("T")[0]
-            : "",   
-            
+            : "",
         };
 
         setFormData(userValues);
@@ -88,6 +96,12 @@ const UserEdit: React.FC = () => {
         const errorObj: Record<string, string> = {};
         fields.forEach((field) => (errorObj[field.name] = ""));
         setErrors(errorObj);
+
+        // ✅ Load existing image using helper function
+        const imageUrl = res.profileImagePath ? getFullImageUrl(res.profileImagePath) : defaultProfile;
+        console.log("User loaded - Original path:", res.profileImagePath, "→ Full URL:", imageUrl);
+        setImagePreview(imageUrl);
+
       } catch (err) {
         toast.error("Failed to load user");
         navigate("/dashboard/user/user-list");
@@ -101,26 +115,30 @@ const UserEdit: React.FC = () => {
 
   // ------------------------------- HANDLERS --------------------------------
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked, files } = e.target;
 
+    if (type === "file" && files && files.length > 0) {
+      const file = files[0];
+      setNewImageFile(file);
+
+      // ✅ Only revoke blob URLs, not http URLs
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      const blobUrl = URL.createObjectURL(file);
+      console.log("New image selected, blob URL created:", blobUrl);
+      setImagePreview(blobUrl);
+      return;
+    }
+
+    const updated = type === "tel" ? value.replace(/[^0-9]/g, "") : value;
+    
     setFormData((prev: any) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : updated,
     }));
 
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileList = e.target.files;
-    if (!fileList || fileList.length === 0) return;
-
-    const file = fileList[0];
-    setSelectedFile(file);
-    setFormData((prev: any) => ({
-      ...prev,
-      profileImagePath: URL.createObjectURL(file),
-    }));
   };
 
   const validateField = (name: string, value: any) => {
@@ -144,7 +162,10 @@ const UserEdit: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error("Please fix validation errors");
+      return;
+    }
 
     try {
       const dataToSubmit = {
@@ -165,154 +186,290 @@ const UserEdit: React.FC = () => {
       // Update user basic details
       await AppUserService.editApp(dataToSubmit as any);
 
-      // Upload profile image if selected
-      if (selectedFile) {
+      // ✅ Upload new image only if a new file was selected
+      if (newImageFile) {
+        console.log("Uploading new profile picture...");
         const imageFormData = new FormData();
         imageFormData.append("appUserId", userId.toString());
-        imageFormData.append("ProfilePic", selectedFile);
+        imageFormData.append("ProfilePic", newImageFile);
 
-        await AppUserService.uploadprofilepic(imageFormData);
+        const uploadRes = await AppUserService.uploadprofilepic(imageFormData);
+        if (!uploadRes) {
+          console.error("Image upload failed");
+          toast.error("User updated but image upload failed");
+        } else {
+          console.log("Image uploaded successfully");
+        }
       }
 
       toast.success("User updated successfully!");
-      setTimeout(() => navigate("/dashboard/user/user-list"), 800);
+      setTimeout(() => navigate("/dashboard/user/user-list"), 1500);
     } catch (error: any) {
       console.error("Update failed:", error);
       toast.error(error?.message || "Update failed");
     }
   };
 
+  // ✅ Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   if (loading) return <KiduLoader type="Loading User Details..." />;
 
   return (
     <>
-      <Container className="px-4 mt-5 shadow-sm rounded bg-white">
+      <Container className="px-4 mt-5 shadow-sm rounded bg-white" style={{ fontFamily: "Urbanist" }}>
         <div className="d-flex align-items-center mb-3">
-          <KiduPrevious />
-          <h4 className="fw-bold ms-2">Edit User</h4>
+          <div className="me-2 mt-3"><KiduPrevious /></div>
+          <h4 className="fw-bold mb-0 mt-3" style={{ color: "#18575A" }}>Edit User</h4>
         </div>
+
         <hr />
 
-        <Form onSubmit={handleSubmit} className="py-3">
+        <Form onSubmit={handleSubmit} className="p-4">
           <Row>
-            {/* Profile Picture */}
-            <Col md={3} className="text-center">
-              <Image
-                src={
-                  selectedFile
-                    ? URL.createObjectURL(selectedFile)
-                    : formData.profileImagePath
-                    ? `${baseURL}/${formData.profileImagePath}`
-                    : "https://via.placeholder.com/120"
-                }
-                roundedCircle
-                width={120}
-                height={120}
-                style={{ objectFit: "cover" }}
-              />
-              <label htmlFor="profilePic" className="btn btn-sm btn-primary mt-3">
-                <FaPen /> Change
-              </label>
-              <input type="file" id="profilePic" hidden onChange={handleFileChange} />
+            {/* IMAGE SECTION */}
+            <Col xs={12} md={4} className="d-flex flex-column align-items-center mb-4">
+              <div style={{ position: "relative", width: "160px", height: "160px" }}>
+                <Image 
+                  src={imagePreview || defaultProfile}
+                  roundedCircle 
+                  width={160} 
+                  height={160}
+                  style={{ objectFit: "cover", border: "1px solid #ccc" }}
+                  onError={(e: any) => { 
+                    console.error("Image load error, using default");
+                    e.target.src = defaultProfile; 
+                  }}
+                />
+
+                <OverlayTrigger placement="bottom" overlay={<Tooltip>Upload Photo</Tooltip>}>
+                  <label htmlFor="photoUpload"
+                    style={{ 
+                      position: "absolute", 
+                      bottom: "5px", 
+                      right: "5px", 
+                      background: "#18575A", 
+                      borderRadius: "50%", 
+                      padding: "8px 11px", 
+                      cursor: "pointer" 
+                    }}>
+                    <FaPen style={{ color: "#fff", fontSize: "14px" }} />
+                  </label>
+                </OverlayTrigger>
+
+                <Form.Control 
+                  type="file" 
+                  id="photoUpload" 
+                  name="photo"
+                  onChange={handleChange} 
+                  accept="image/*"
+                  style={{ display: "none" }} 
+                />
+              </div>
             </Col>
 
-            {/* Form Fields */}
-            <Col md={9}>
+            {/* FORM FIELDS */}
+            <Col xs={12} md={8}>
               <Row>
-                {fields.map((field) => (
-                  <Col md={6} className="mb-3" key={field.name}>
-                    <Form.Label>
-                      {field.label} {field.rules.required && <span className="text-danger">*</span>}
-                    </Form.Label>
-                    <Form.Control
-  name={field.name}
-  value={formData[field.name]}
-  onChange={handleChange}
-  onBlur={() => validateField(field.name, formData[field.name])}
-  disabled={field.name === "mobileNumber"} // 👉 Mobile number is read-only now
-  style={field.name === "mobileNumber" ? { backgroundColor: "#f5f5f5", cursor: "not-allowed" } : {}}
-/>
-                    {errors[field.name] && <small className="text-danger">{errors[field.name]}</small>}
-                  </Col>
-                ))}
-              </Row>
-
-              {/* Multi-select */}
-              <Row className="mb-3">
-                <Col md={6}>
-                  <Form.Label>Interests</Form.Label>
-                  <Select
-                    isMulti
-                    options={interestOptions}
-                    value={interestOptions.filter((x) => formData.interests.includes(x.value))}
-                    onChange={(e: any) =>
-                      setFormData((prev: any) => ({ ...prev, interests: e.map((x: any) => x.value) }))
-                    }
+                {/* Name */}
+                <Col md={6} className="mb-3">
+                  <Form.Label className="fw-semibold">
+                    {fields[0].label} {fields[0].rules.required && <span className="text-danger">*</span>}
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    placeholder="Enter name"
+                    onChange={handleChange}
+                    onBlur={() => validateField("name", formData.name)}
                   />
+                  {errors.name && <small className="text-danger">{errors.name}</small>}
                 </Col>
 
-                <Col md={6}>
-                  <Form.Label>Languages</Form.Label>
-                  <Select
-                    isMulti
-                    options={languageOptions}
-                    value={languageOptions.filter((x) => formData.prefferedlanguage.includes(x.value))}
-                    onChange={(e: any) =>
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        prefferedlanguage: e.map((x: any) => x.value),
-                      }))
-                    }
+                {/* Email */}
+                <Col md={6} className="mb-3">
+                  <Form.Label className="fw-semibold">
+                    {fields[1].label} {fields[1].rules.required && <span className="text-danger">*</span>}
+                  </Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    placeholder="Enter email"
+                    onChange={handleChange}
+                    onBlur={() => validateField("email", formData.email)}
                   />
+                  {errors.email && <small className="text-danger">{errors.email}</small>}
                 </Col>
-              </Row>
 
-              {/* Switches */}
-              <Row>
-                <Col md={4}>
-                  <Form.Check
-                    type="switch"
-                    label="Blocked"
-                    checked={formData.isBlocked}
-                    name="isBlocked"
-                    onChange={handleChange}
+                {/* Mobile Number (Read-only) */}
+                <Col md={6} className="mb-3">
+                  <Form.Label className="fw-semibold">
+                    {fields[4].label} {fields[4].rules.required && <span className="text-danger">*</span>}
+                  </Form.Label>
+                  <Form.Control
+                    type="tel"
+                    name="mobileNumber"
+                    value={formData.mobileNumber}
+                    placeholder="Mobile number"
+                    disabled
+                    style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
                   />
+                  {errors.mobileNumber && <small className="text-danger">{errors.mobileNumber}</small>}
                 </Col>
-                <Col md={4}>
-                  <Form.Check
-                    type="switch"
-                    label="Staff"
-                    checked={formData.isStaff}
-                    name="isStaff"
+
+                {/* Wallet Balance */}
+                <Col md={6} className="mb-3">
+                  <Form.Label className="fw-semibold">
+                    {fields[2].label}
+                  </Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="walletBalance"
+                    value={formData.walletBalance}
+                    placeholder="Wallet balance"
                     onChange={handleChange}
+                    onBlur={() => validateField("walletBalance", formData.walletBalance)}
                   />
+                  {errors.walletBalance && <small className="text-danger">{errors.walletBalance}</small>}
                 </Col>
-                <Col md={4}>
-                  <Form.Check
-                    type="switch"
-                    label="KYCComplete"
-                    checked={formData.isKYCCompleted}
-                    name="isKYCCompleted"
+
+                {/* Registered Date */}
+                <Col md={6} className="mb-3">
+                  <Form.Label className="fw-semibold">
+                    {fields[3].label} {fields[3].rules.required && <span className="text-danger">*</span>}
+                  </Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="registeredDate"
+                    value={formData.registeredDate}
                     onChange={handleChange}
+                    onBlur={() => validateField("registeredDate", formData.registeredDate)}
                   />
+                  {errors.registeredDate && <small className="text-danger">{errors.registeredDate}</small>}
                 </Col>
-                <Col md={4}>
-                  <Form.Check
-                    type="switch"
-                    label="AudultVerification"
-                    checked={formData.isAudultVerificationCompleted}
-                    name="isAudultVerificationCompleted"
-                    onChange={handleChange}
-                  />
+
+                {/* Gender Radio Buttons */}
+                <Col md={6} className="mb-3">
+                  <Form.Label className="fw-semibold">
+                    {fields[5].label} {fields[5].rules.required && <span className="text-danger">*</span>}
+                  </Form.Label>
+                  <div className="d-flex gap-3 mt-2">
+                    <Form.Check
+                      type="radio"
+                      label="Male"
+                      name="gender"
+                      value="Male"
+                      checked={formData.gender === "Male"}
+                      onChange={handleChange}
+                      onBlur={() => validateField("gender", formData.gender)}
+                    />
+                    <Form.Check
+                      type="radio"
+                      label="Female"
+                      name="gender"
+                      value="Female"
+                      checked={formData.gender === "Female"}
+                      onChange={handleChange}
+                      onBlur={() => validateField("gender", formData.gender)}
+                    />
+                    <Form.Check
+                      type="radio"
+                      label="Other"
+                      name="gender"
+                      value="Other"
+                      checked={formData.gender === "Other"}
+                      onChange={handleChange}
+                      onBlur={() => validateField("gender", formData.gender)}
+                    />
+                  </div>
+                  {errors.gender && <small className="text-danger">{errors.gender}</small>}
                 </Col>
               </Row>
             </Col>
           </Row>
 
-          {/* Buttons */}
-          <div className="d-flex justify-content-end gap-2 mt-4">
-            <KiduReset setFormData={setFormData} initialValues={initialValues} />
-            <Button type="submit" style={{ background: "#18575A", border: "none" }}>
+          {/* Multi-select for Interests and Languages */}
+          <Row className="mb-3">
+            <Col md={6}>
+              <Form.Label className="fw-semibold">Interests</Form.Label>
+              <Select
+                isMulti
+                options={interestOptions}
+                value={interestOptions.filter((x) => formData.interests.includes(x.value))}
+                onChange={(e: any) =>
+                  setFormData((prev: any) => ({ ...prev, interests: e.map((x: any) => x.value) }))
+                }
+              />
+            </Col>
+
+            <Col md={6}>
+              <Form.Label className="fw-semibold">Preferred Languages</Form.Label>
+              <Select
+                isMulti
+                options={languageOptions}
+                value={languageOptions.filter((x) => formData.prefferedlanguage.includes(x.value))}
+                onChange={(e: any) =>
+                  setFormData((prev: any) => ({
+                    ...prev,
+                    prefferedlanguage: e.map((x: any) => x.value),
+                  }))
+                }
+              />
+            </Col>
+          </Row>
+
+          {/* Switches */}
+          <Row className="mb-4">
+            <Col md={3}>
+              <Form.Check
+                type="switch"
+                label="Blocked"
+                checked={formData.isBlocked}
+                name="isBlocked"
+                onChange={handleChange}
+              />
+            </Col>
+            <Col md={3}>
+              <Form.Check
+                type="switch"
+                label="Staff"
+                checked={formData.isStaff}
+                name="isStaff"
+                onChange={handleChange}
+              />
+            </Col>
+            <Col md={3}>
+              <Form.Check
+                type="switch"
+                label="KYC Complete"
+                checked={formData.isKYCCompleted}
+                name="isKYCCompleted"
+                onChange={handleChange}
+              />
+            </Col>
+            <Col md={3}>
+              <Form.Check
+                type="switch"
+                label="Adult Verification"
+                checked={formData.isAudultVerificationCompleted}
+                name="isAudultVerificationCompleted"
+                onChange={handleChange}
+              />
+            </Col>
+          </Row>
+
+          {/* BUTTONS */}
+          <div className="d-flex gap-2 justify-content-end mt-4">
+            <KiduReset initialValues={initialValues} setFormData={setFormData} />
+            <Button type="submit" style={{ backgroundColor: "#18575A", border: "none" }}>
               Update
             </Button>
           </div>

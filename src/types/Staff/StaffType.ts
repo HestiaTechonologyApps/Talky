@@ -4,7 +4,6 @@
       customMessage: any;
       isSucess: boolean;
       success: boolean;
-   
       staffUserId?: number;
       appUserId: number;
       bio: string;

@@ -4,15 +4,16 @@ import { StaffModel } from "../../types/Staff/StaffType";
 import KiduServerTable from "../../components/Trip/KiduServerTable";
 import { getFullImageUrl } from "../../constants/API_ENDPOINTS";
 
+// ✅ Added type property to columns
 const columns = [
-  { key: "staffUserId", label: "Staff ID" },
-  { key: "profile", label: "Photo" },
-  { key: "name", label: "Name" },
-  { key: "mobileNumber", label: "Mobile Number" },
-  { key: "email", label: "Email" },
-  { key: "address", label: "Address" },
-  { key: "starRating", label: "Star Rating" },
-  { key: "isBlocked", label: "Is Blocked" },
+  { key: "staffUserId", label: "Staff ID", type: "text" as const },
+  { key: "profile", label: "Photo", type: "image" as const }, // ✅ Changed to image type
+  { key: "name", label: "Name", type: "text" as const },
+  { key: "mobileNumber", label: "Mobile Number", type: "text" as const },
+  { key: "email", label: "Email", type: "text" as const },
+  { key: "address", label: "Address", type: "text" as const },
+  { key: "starRating", label: "Star Rating", type: "rating" as const }, 
+  { key: "isBlocked", label: "Is Blocked", type: "checkbox" as const }, 
 ];
 
 const StaffList: React.FC = () => {
@@ -36,14 +37,18 @@ const StaffList: React.FC = () => {
         return { data: [], total: 0 };
       }
 
-      // Transform data with profile images
+      // ✅ Transform data - keep raw values, let KiduServerTable handle formatting
       let transformedData = response.map((staff: StaffModel) => {
-        const imageUrl = getFullImageUrl(staff.profileImagePath) || "/assets/Images/profile.jpeg";
+        // Get full image URL
+        const imageUrl = staff.profileImagePath 
+          ? getFullImageUrl(staff.profileImagePath) 
+          : null;
 
         return {
           ...staff,
-          profile: imageUrl,
-          // starRating is already a number, keep it as is
+          profile: imageUrl, // ✅ Pass the URL, not formatted string
+          starRating: staff.starRating || 0, // ✅ Pass raw number for rating type
+          isBlocked: staff.isBlocked, // ✅ Pass boolean for checkbox type
         };
       });
 
@@ -52,10 +57,10 @@ const StaffList: React.FC = () => {
         const lowerSearch = searchTerm.toLowerCase();
         transformedData = transformedData.filter(
           (staff) =>
-            (staff.name?.toString() || '').toLowerCase().includes(lowerSearch) ||
-            (staff.email?.toString() || '').toLowerCase().includes(lowerSearch) ||
-            (staff.mobileNumber?.toString() || '').includes(searchTerm) ||
-            (staff.staffUserId?.toString() || '').includes(searchTerm)
+            staff.name?.toLowerCase().includes(lowerSearch) ||
+            staff.email?.toLowerCase().includes(lowerSearch) ||
+            staff.mobileNumber?.includes(searchTerm) ||
+            staff.staffUserId?.toString().includes(searchTerm)
         );
       }
 
@@ -69,7 +74,7 @@ const StaffList: React.FC = () => {
       console.log("✅ Staff data fetched:", {
         total,
         pageData: paginatedData.length,
-        sampleStarRating: paginatedData[0]?.starRating,
+        firstItem: paginatedData[0]
       });
 
       return {
@@ -92,11 +97,12 @@ const StaffList: React.FC = () => {
       addRoute="/staff-management/staff-create"
       editRoute="/dashboard/staff/staff-Edit"
       viewRoute="/dashboard/staff/staff-view"
+      
       fetchData={fetchStaffData}
       rowsPerPage={15}
       showSearch={true}
       showActions={true}
-      showAddButton={true}
+      showAddButton={false}
       showExport={true}
     />
   );

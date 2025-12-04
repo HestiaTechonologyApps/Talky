@@ -1,19 +1,19 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { User } from "../../../types/ApiTypes";
+import { User } from "../../../types/TalkyUser";
 import AppUserService from "../../../services/AppUserServices";
 import KiduLoader from "../../../components/KiduLoader";
 import toast from "react-hot-toast";
 import KiduServerTable from "../../../components/Trip/KiduServerTable";
 
-// Remove the 'render' functions from columns since KiduServerTable handles them differently
+// ✅ Specify column types explicitly
 const columns = [
-  { key: "appUserId", label: "ID" },
-  { key: "name", label: "Name" },
-  { key: "mobileNumber", label: "Mobile Number" },
-  { key: "registeredDate", label: "Joined On" },
-  { key: "status", label: "Status" },
-  { key: "isBlocked", label: "Is Blocked" },
-  { key: "walletBalance", label: "Wallet Balance" },
+  { key: "appUserId", label: "ID", type: "text" as const },
+  { key: "name", label: "Name", type: "text" as const },
+  { key: "mobileNumber", label: "Mobile Number", type: "text" as const },
+  { key: "registeredDate", label: "Joined On", type: "date" as const },
+  { key: "status", label: "Status", type: "text" as const }, // ✅ Changed to text
+  { key: "isBlocked", label: "Is Blocked", type: "checkbox" as const }, // ✅ Checkbox only for isBlocked
+  { key: "walletBalance", label: "Wallet Balance", type: "text" as const },
 ];
 
 const UserPage: React.FC = () => {
@@ -56,7 +56,7 @@ const UserPage: React.FC = () => {
       const response = await AppUserService.getAllUsers();
       let filteredData = response || [];
       
-      // Apply search filter locally (since you're fetching all data at once)
+      // Apply search filter locally
       if (params.searchTerm) {
         const searchLower = params.searchTerm.toLowerCase();
         filteredData = filteredData.filter(user => 
@@ -96,6 +96,7 @@ const UserPage: React.FC = () => {
       showSearch={true}
       showActions={true}
       showExport={true}
+      showAddButton={false} // ✅ Set to false to hide add button
       rowsPerPage={10}
     />
   );

@@ -1,12 +1,6 @@
 // src/types/ApiTypes.ts
 
-export interface CustomResponse<T> {
-    statusCode: number;
-    error: string | null;
-    customMessage: string;
-    isSucess: boolean;
-    value: T;
-  }
+
   
   /*export interface User {
     id: string;
@@ -15,6 +9,7 @@ export interface CustomResponse<T> {
     // Add other user fields as needed
   }*/
   export interface User{
+    profilePic?: string | null; 
     appUserId?:number;
     name:string;
     email:string;
@@ -42,8 +37,6 @@ export interface CustomResponse<T> {
     otpAttempts:number;
     walletBalance:number;
     isDeleted:boolean;
-    
-  
     
   }
   

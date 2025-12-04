@@ -4,11 +4,11 @@ import React from "react";
 export interface ValidationResult {
   isValid: boolean;
   message?: string;
-  label?: string; // <-- Added to return formatted label
+  label?: string;
 }
 
 export interface ValidationRule {
-  type?: "text" | "number" | "email" | "url" | "textarea" | "popup" | "password" | "select" | "dropLocations" | "image" | "date";
+  type?: "text" | "number" | "email" | "url" | "textarea" | "popup" | "password" | "select" | "dropLocations" | "image" | "date" | "radio";
   required?: boolean;
   minLength?: number;
   maxLength?: number;
@@ -18,13 +18,8 @@ export interface ValidationRule {
 
 export const KiduValidation = {
   validate(value: unknown, rules: ValidationRule): ValidationResult {
-
-    // ⭐ Create formatted label with red astrisk only if required
     const rawLabel = rules.label || "This field";
-    const label = rules.required
-      ? `${rawLabel} <span style="color:#EF4444;">*</span>`
-      : rawLabel;
-
+    const label = rules.required ? `${rawLabel} <span style="color:#EF4444;">*</span>` : rawLabel;
     const val = value;
 
     if (rules.type === "dropLocations") {
@@ -42,15 +37,13 @@ export const KiduValidation = {
       const file = val as File | null;
       if (rules.required && !file)
         return { isValid: false, message: `${rawLabel} is required.`, label };
-
       if (file) {
-        const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-        if (!allowedTypes.includes(file.type))
+        const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+        if (!allowed.includes(file.type))
           return { isValid: false, message: `${rawLabel} must be a valid image (JPG, PNG, WEBP).`, label };
-
-        const maxSizeMB = 5;
-        if (file.size > maxSizeMB * 1024 * 1024)
-          return { isValid: false, message: `${rawLabel} must be less than ${maxSizeMB}MB.`, label };
+        const max = 5;
+        if (file.size > max * 1024 * 1024)
+          return { isValid: false, message: `${rawLabel} must be less than ${max}MB.`, label };
       }
       return { isValid: true, label };
     }
@@ -60,11 +53,17 @@ export const KiduValidation = {
         return { isValid: false, message: `${rawLabel} is required.`, label };
     }
 
+    /* ⭐ NEW RADIO BUTTON VALIDATION */
+    if (rules.type === "radio") {
+      if (rules.required && (!val || String(val).trim() === ""))
+        return { isValid: false, message: `${rawLabel} is required.`, label };
+      return { isValid: true, label };
+    }
+
     if (rules.type === "date") {
       const str = String(val ?? "").trim();
       if (rules.required && !str)
         return { isValid: false, message: `${rawLabel} is required.`, label };
-
       if (str) {
         const d = new Date(str);
         if (isNaN(d.getTime()))
@@ -91,13 +90,13 @@ export const KiduValidation = {
       if (strVal.length < 8)
         return { isValid: false, message: `${rawLabel} must be at least 8 characters.`, label };
       if (!/[A-Z]/.test(strVal))
-        return { isValid: false, message: `${rawLabel} must contain at least one uppercase letter.`, label };
+        return { isValid: false, message: `${rawLabel} must contain an uppercase letter.`, label };
       if (!/[a-z]/.test(strVal))
-        return { isValid: false, message: `${rawLabel} must contain at least one lowercase letter.`, label };
+        return { isValid: false, message: `${rawLabel} must contain a lowercase letter.`, label };
       if (!/[0-9]/.test(strVal))
-        return { isValid: false, message: `${rawLabel} must contain at least one number.`, label };
+        return { isValid: false, message: `${rawLabel} must contain a number.`, label };
       if (!/[!@#$%^&*(),.?":{}|<>]/.test(strVal))
-        return { isValid: false, message: `${rawLabel} must contain at least one special character.`, label };
+        return { isValid: false, message: `${rawLabel} must contain a special character.`, label };
     }
 
     if (rules.minLength && strVal.length < rules.minLength)

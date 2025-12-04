@@ -1,7 +1,8 @@
 import HttpService from '../common/HttpService';
 import { StaffModel } from '../../types/Staff/StaffType';
 import { API_ENDPOINTS } from '../../constants/API_ENDPOINTS';
-import { CustomResponse, User } from '../../types/ApiTypes';
+import {  User } from '../../types/TalkyUser';
+import { CustomResponse } from '../../types/common/ApiTypes';
 
 
 const StaffService = {
