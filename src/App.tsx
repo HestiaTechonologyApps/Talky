@@ -92,18 +92,19 @@ import StaffEdit from './pages/Staff/Edit';
 
 //user Recharge
 import UserRechargeListPage from './pages/Users/UserRecharge/List';
+import ViewUserRecharge from './pages/Users/UserRecharge/View';
 
 //App Notication
 import AppNotiicationList from './pages/settings/AppNotification/List';
-import  AppNotificationCreate from './pages/settings/AppNotification/Create';
-import  AppNotificationEdit from './pages/settings/AppNotification/Edit';
-import  AppNotificationView from './pages/settings/AppNotification/View';
+import AppNotificationCreate from './pages/settings/AppNotification/Create';
+import AppNotificationEdit from './pages/settings/AppNotification/Edit';
+import AppNotificationView from './pages/settings/AppNotification/View';
 
 //Finacial Year
 import FinancialYear from './pages/settings/FinancialYear/List';
-import  FinancialYearCreate from './pages/settings/FinancialYear/Create';
+import FinancialYearCreate from './pages/settings/FinancialYear/Create';
 import FinancialYearEdit from './pages/settings/FinancialYear/Edit';
-import  FinancialYearView from './pages/settings/FinancialYear/View';
+import FinancialYearView from './pages/settings/FinancialYear/View';
 
 
 
@@ -177,8 +178,8 @@ function App() {
           <Route path="user/view-user/:userId" element={<ViewUser />} />
 
           {/* User Recharge */}
-          <Route path="user/userrechrg-list" element={<UserRechargeListPage />} />
-          <Route path="user/view-user/:userId" element={<ViewUser />} />
+          <Route path="recharge/list" element={<UserRechargeListPage />} />
+          <Route path="recharge/view/:purchaseOrderId" element={<ViewUserRecharge />} />
 
           {/* Company */}
           <Route path="settings/company-list" element={<CompanyList />} />
@@ -194,24 +195,24 @@ function App() {
           {/* Purchase Coupon */}
           <Route path="settings/purchase-coupon-list" element={<PurchaseCouponList />} />
           <Route path="settings/create-purchasecoupon" element={<CreatePurchaseCoupon />} />
-          <Route path="settings/edit-purchasecoupon/:purchaseCouponId" element={<EditPurchasecoupon />} />       
-           <Route path="settings/view-purchasecoupon/:purchaseCouponId" element={<ViewPurchasecoupon />} />
-           {/* Staff */}
+          <Route path="settings/edit-purchasecoupon/:purchaseCouponId" element={<EditPurchasecoupon />} />
+          <Route path="settings/view-purchasecoupon/:purchaseCouponId" element={<ViewPurchasecoupon />} />
+          {/* Staff */}
           <Route path="staff/staff-list" element={<StaffList />} />
           <Route path="staff/staff-view/:staffUserId" element={<StaffView />} />
-          <Route path="staff/staff-edit/:staffUserId" element={<StaffEdit />} /> 
+          <Route path="staff/staff-edit/:staffUserId" element={<StaffEdit />} />
 
           {/*App Notificatin*/}
-          <Route path="settings/appNotification-list" element={<AppNotiicationList />} /> 
-          <Route path="settings/create-appNotification" element={< AppNotificationCreate/>} />
-          <Route path="settings/edit-appNotification/:appNotificationId" element={< AppNotificationEdit/>} />
-          <Route path="settings/view-appNotification/:appNotificationId" element={< AppNotificationView/>} />
+          <Route path="settings/appNotification-list" element={<AppNotiicationList />} />
+          <Route path="settings/create-appNotification" element={< AppNotificationCreate />} />
+          <Route path="settings/edit-appNotification/:appNotificationId" element={< AppNotificationEdit />} />
+          <Route path="settings/view-appNotification/:appNotificationId" element={< AppNotificationView />} />
 
           {/*Financial Year */}
-          <Route path="settings/financial-year" element={<FinancialYear />} /> 
-          <Route path="settings/create-financialYear" element={< FinancialYearCreate/>} />
-          <Route path="settings/edit-financialYear/:financialYearId" element={< FinancialYearEdit/>} />
-          <Route path="settings/view-financialYear/:financialYearId" element={< FinancialYearView/>} />
+          <Route path="settings/financial-year" element={<FinancialYear />} />
+          <Route path="settings/create-financialYear" element={< FinancialYearCreate />} />
+          <Route path="settings/edit-financialYear/:financialYearId" element={< FinancialYearEdit />} />
+          <Route path="settings/view-financialYear/:financialYearId" element={< FinancialYearView />} />
         </Route>
         {/* Catch-All Route for 404 */}
         <Route path='*' element={<PageNotFound />} />

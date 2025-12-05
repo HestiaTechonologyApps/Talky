@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { purchaseorder } from "../../../types/Users/UserRecharge.types";
 import KiduLoader from "../../../components/KiduLoader";
 import toast from "react-hot-toast";
 import KiduServerTable from "../../../components/Trip/KiduServerTable";
