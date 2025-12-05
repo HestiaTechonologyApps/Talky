@@ -38,7 +38,7 @@ const Sidebar: React.FC = () => {
 
     const usersSubMenu = [
         { label: "User List", path: "user/user-list", icon: <BsListUl /> },
-        { label: "User Recharge", path: "/dashboard/users/user-recharge", icon: <BsShieldExclamation /> },
+        { label: "User Recharge", path: "/dashboard/user/userrechrg-list", icon: <BsShieldExclamation /> },
         { label: "Blocked Users", path: "/dashboard/users/blocked-users", icon: <BsPersonX /> },
     ];
 
