@@ -82,7 +82,7 @@ const CategoryList: React.FC = () => {
       addButtonLabel="Add New Category"
       addRoute="/dashboard/settings/create-Category"
       editRoute="/dashboard/settings/edit-Category"
-      viewRoute="/Category/CategoryView"
+      viewRoute="/dashboard/settings/view-Category"
       fetchData={fetchCategoryData}
       rowsPerPage={15}
       showSearch={true}
