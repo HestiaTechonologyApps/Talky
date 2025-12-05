@@ -3,7 +3,6 @@ import { Card, Table, Image, Button } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaEdit } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
-
 import KiduLoader from "../../../components/KiduLoader";
 import KiduPrevious from "../../../components/KiduPrevious";
 import KiduAuditLogs from "../../../components/KiduAuditLogs";
@@ -150,8 +149,6 @@ const UserPageView: React.FC = () => {
     </tbody>
   </Table>
 </div>
-
-
         {/* Wallet Accordion with mt-4 spacing */}
         {user.appUserId && <WalletAccordion userId={user.appUserId} />}
 
