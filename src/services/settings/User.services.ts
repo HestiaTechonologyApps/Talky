@@ -2,7 +2,7 @@
 //import HttpService from './HttpService';
 import HttpService from '../../services/common/HttpService';
 //import { User } from '../types/ApiTypes';
-import { User } from '../../types/TalkyUser';
+import { User } from '../../types/Users/TalkyUser';
 //import { API_ENDPOINTS } from 'constants/API_ENDPOINTS';
 import { API_ENDPOINTS } from '../../constants/API_ENDPOINTS';
 import { CustomResponse } from '../../types/common/ApiTypes';

@@ -6,8 +6,6 @@ import { useNavigate } from "react-router-dom";
 import ProgressBar from "../layout/ProgressBar";
 import Charts from "../layout/Charts";
 
-import TripService from "../services/Trip.services";
-
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -37,13 +35,26 @@ const HomePage: React.FC = () => {
     const fetchCardData = async () => {
       try {
         setLoading(true);
-        const response = await TripService.getTripDashboard(selectedYear);
-
-        if (response?.isSuccess && response?.value) {
-          setCards(response.value);
-        } else {
-          toast.error("Failed to load dashboard data.");
-        }
+        
+        // TODO: Replace with your actual dashboard service call
+        // Example: const response = await DashboardService.getDashboard(selectedYear);
+        
+        // Mock data for demonstration
+        const mockData: CardData[] = [
+          { title: "Total Users", value: 150, change: 12, color: "#4CAF50", route: "/dashboard/users" },
+          { title: "Total Staff", value: 25, change: 5, color: "#2196F3", route: "/dashboard/staff/staff-list" },
+          { title: "Active Sessions", value: 45, change: -3, color: "#FF9800", route: "/dashboard/sessions" },
+          { title: "Revenue", value: 12500, change: 8, color: "#9C27B0", route: "/dashboard/revenue" },
+        ];
+        
+        setCards(mockData);
+        
+        // Uncomment when you have the actual service
+        // if (response?.isSuccess && response?.value) {
+        //   setCards(response.value);
+        // } else {
+        //   toast.error("Failed to load dashboard data.");
+        // }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         toast.error("Error fetching dashboard data.");
@@ -58,38 +69,27 @@ const HomePage: React.FC = () => {
   // --------------------- HANDLE SEARCH ---------------------
   const handleSearch = async (term: string) => {
     if (!term) {
-      toast.error("Please enter a Trip ID to search.");
+      toast.error("Please enter a search term.");
       return;
     }
 
     try {
-      const response = await TripService.getById(Number(term));
-
-      if (response.isSucess && response.value) {
-        const trip = response.value;
-        const status = trip.tripStatus;
-
-        switch (status) {
-          case "Scheduled":
-            navigate(`/dashboard/total-trips/${trip.tripOrderId}`);
-            break;
-          case "Completed":
-            navigate(`/dashboard/total-trips/${trip.tripOrderId}`);
-            break;
-          case "Canceled":
-            navigate(`/dashboard/total-trips/${trip.tripOrderId}`);
-            break;
-          default:
-            navigate(`/dashboard/total-trips/${trip.tripOrderId}`);
-        }
-
-        toast.success(`Trip ${trip.tripOrderId} found! Opening ${status} trips...`);
-      } else {
-        toast.error("No trip found with this ID.");
-      }
+      // TODO: Replace with your actual search service call
+      // Example: const response = await SearchService.search(term);
+      
+      toast.info(`Searching for: ${term}`);
+      
+      // Uncomment and modify when you have the actual service
+      // if (response.isSuccess && response.value) {
+      //   const item = response.value;
+      //   navigate(`/dashboard/details/${item.id}`);
+      //   toast.success(`Item found!`);
+      // } else {
+      //   toast.error("No results found.");
+      // }
     } catch (error) {
-      console.error("Error fetching trip by ID:", error);
-      toast.error("Error fetching trip details.");
+      console.error("Error searching:", error);
+      toast.error("Error performing search.");
     }
   };
 
@@ -106,10 +106,10 @@ const HomePage: React.FC = () => {
             label={
               <div className="d-flex align-items-center gap-2" style={{ textDecoration: "none" }}>
                 <FaPlus className="fw-bold" />
-                <span className="head-font mt-1">Add New Trip</span>
+                <span className="head-font mt-1">Add New</span>
               </div>
             }
-            to="/dashboard/trip-create"
+            to="/dashboard/create"
             style={{ width: 200 }}
           />
         </div>

@@ -7,7 +7,7 @@ import KiduLoader from "../../../components/KiduLoader";
 import KiduPrevious from "../../../components/KiduPrevious";
 import KiduAuditLogs from "../../../components/KiduAuditLogs";
 import AppUserService from "../../../services/Users/AppUserServices";
-import { User } from "../../../types/TalkyUser";
+import { User } from "../../../types/Users/TalkyUser";
 import defaultProfile from "../../../assets/Images/profile.jpeg";
 import { getFullImageUrl } from "../../../constants/API_ENDPOINTS";
 import WalletAccordion from "./WalletAccordion";

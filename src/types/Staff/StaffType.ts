@@ -1,9 +1,8 @@
-
-  export interface StaffModel{
-      message: any;
-      customMessage: any;
+export interface StaffModel{
+      error: any;
       isSucess: boolean;
-      success: boolean;
+      customMessage: any;
+   
       staffUserId?: number;
       appUserId: number;
       bio: string;
