@@ -44,9 +44,9 @@ const CategoryService = {
  async updateCategory(id: string, data:Category) {
   return await HttpService.callApi<Category>(API_ENDPOINTS.Category.UPDATE(id), 'PUT', data);
 },
- async deleteCategoryById(id: string, data: Category) {
-    return await HttpService.callApi<Category>(API_ENDPOINTS.Category.DELETE(id), 'DELETE', data);
-  },
+async deleteCategoryById(id: string) {
+  return await HttpService.callApi(API_ENDPOINTS.Category.DELETE(id), 'DELETE');
+}
 
 };
 export default CategoryService;
