@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { Col, Container, Row, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import carGif from "../../assets/Gifs/car.gif";
+import Call from "../../assets/Gifs/phone-call.webp";
 
 const Preloader: React.FC = () => {
     const navigate = useNavigate();
@@ -31,7 +31,7 @@ const Preloader: React.FC = () => {
                         {/* Preloader GIF or Spinner */}
                         <div className="mb-3">
                             <img
-                                src={carGif}
+                                src={Call}
                                 alt="Loading..."
                                 className="img-fluid"
                                 style={{
@@ -44,14 +44,14 @@ const Preloader: React.FC = () => {
 
                         {/* Spinner (Bootstrap alternative) */}
                         <div className="d-flex justify-content-center align-items-center gap-2 mb-3">
-                            <Spinner animation="border" variant="success" />
-                            <Spinner animation="grow" variant="success" />
+                            <Spinner animation="border" variant="danger" />
+                            <Spinner animation="grow" variant="danger" />
                         </div>
 
                         {/* App name / message */}
                         <h4
                             className="fw-semibold mt-2"
-                            style={{ color: "#18575A", fontWeight: 700 }}
+                            style={{ color: "#882626ff", fontWeight: 700 }}
                         >
                             Welcome.....
                         </h4>
