@@ -1,3 +1,5 @@
+import { AuditTrails } from "../common/AuditLog.types";
+
   export interface Company{
    companyId:number;
    comapanyName:string;
@@ -16,6 +18,7 @@
    companyLogo:string;
    isActive:boolean;
    isDeleted:boolean;
+   auditLogs?: AuditTrails[];
   }
 export interface CompanyLookup {
     id: number;
