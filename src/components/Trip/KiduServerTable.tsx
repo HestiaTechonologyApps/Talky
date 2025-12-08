@@ -101,7 +101,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
           searchTerm: search,
         });
 
-        setData(result.data || []);
+        setData((result.data || []).reverse());
         setTotal(result.total || 0);
       } catch (err: any) {
         console.error("❌ KiduServerTable - Error:", err);
