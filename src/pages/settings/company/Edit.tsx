@@ -11,6 +11,7 @@ import KiduPrevious from "../../../components/KiduPrevious";
 import KiduLoader from "../../../components/KiduLoader";
 import KiduReset from "../../../components/ReuseButtons/KiduReset";
 import KiduAuditLogs from "../../../components/KiduAuditLogs";
+import { Company } from "../../../types/settings/Company.types";
 
 const CompanyEdit: React.FC = () => {
   const navigate = useNavigate();
@@ -38,9 +39,20 @@ const CompanyEdit: React.FC = () => {
     initialErrors[f.name] = "";
   });
 
-  const [formData, setFormData] = useState({
-    ...initialValues,
+  const [formData, setFormData] = useState<Company>({
     companyId: 0,
+    comapanyName: "",
+    website: "",
+    contactNumber: "",
+    email: "",
+    taxNumber: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    country: "",
+    zipCode: "",
+    invoicePrefix: "",
     companyLogo: "",
     isActive: true,
     isDeleted: false,
@@ -51,7 +63,7 @@ const CompanyEdit: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string>(defaultLogo);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [initialData, setInitialData] = useState<any>(null);
+  const [initialData, setInitialData] = useState<Company | null>(null);
 
   const getLabel = (name: string) => {
     const field = fields.find(f => f.name === name);
@@ -73,26 +85,32 @@ const CompanyEdit: React.FC = () => {
           navigate("/dashboard/settings/company-list"); 
           return; 
         }
+        
         const response = await CompanyService.getCompanyById(companyId);
-        if (!response) throw new Error("No data received from server");
+        
+        if (!response || !response.isSucess) {
+          throw new Error(response?.customMessage || response?.error || "Failed to load company");
+        }
 
-        const formattedData = {
-          ...response,
-          comapanyName: response.comapanyName || "",
-          website: response.website || "",
-          contactNumber: response.contactNumber || "",
-          email: response.email || "",
-          taxNumber: response.taxNumber || "",
-          addressLine1: response.addressLine1 || "",
-          addressLine2: response.addressLine2 || "",
-          city: response.city || "",
-          state: response.state || "",
-          country: response.country || "",
-          zipCode: response.zipCode || "",
-          invoicePrefix: response.invoicePrefix || "",
-          companyLogo: response.companyLogo || "",
-          isActive: response.isActive ?? true,
-          isDeleted: response.isDeleted ?? false,
+        const data = response.value;
+        const formattedData: Company = {
+          companyId: data.companyId || 0,
+          comapanyName: data.comapanyName || "",
+          website: data.website || "",
+          contactNumber: data.contactNumber || "",
+          email: data.email || "",
+          taxNumber: data.taxNumber || "",
+          addressLine1: data.addressLine1 || "",
+          addressLine2: data.addressLine2 || "",
+          city: data.city || "",
+          state: data.state || "",
+          country: data.country || "",
+          zipCode: data.zipCode || "",
+          invoicePrefix: data.invoicePrefix || "",
+          companyLogo: data.companyLogo || "",
+          isActive: data.isActive ?? true,
+          isDeleted: data.isDeleted ?? false,
+          auditLogs: data.auditLogs
         };
 
         setFormData(formattedData);
@@ -130,7 +148,7 @@ const CompanyEdit: React.FC = () => {
     }
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const target = e.target as HTMLInputElement;
     let updatedValue: any = value;
@@ -167,7 +185,9 @@ const CompanyEdit: React.FC = () => {
   const validateForm = () => {
     let ok = true;
     fields.forEach(f => {
-      if (!validateField(f.name, formData[f.name])) ok = false;
+      if (f.rules.required && !validateField(f.name, formData[f.name as keyof Company])) {
+        ok = false;
+      }
     });
     return ok;
   };
@@ -180,7 +200,7 @@ const CompanyEdit: React.FC = () => {
     try {
       if (!companyId) throw new Error("No company ID available");
       
-      const dataToUpdate = {
+      const dataToUpdate: Company = {
         companyId: Number(formData.companyId),
         comapanyName: formData.comapanyName || "",
         website: formData.website || "",
@@ -196,18 +216,23 @@ const CompanyEdit: React.FC = () => {
         invoicePrefix: formData.invoicePrefix || "",
         companyLogo: formData.companyLogo || "",
         isActive: Boolean(formData.isActive),
-        isDeleted: Boolean(formData.isDeleted),
+        isDeleted: Boolean(formData.isDeleted)
       };
 
-     
+      const response = await CompanyService.updateCompany(companyId, dataToUpdate);
+      
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to update company");
+      }
 
       toast.success("Company updated successfully!");
       setTimeout(() => navigate("/dashboard/settings/company-list"), 1500);
     } catch (error: any) {
       console.error("Update failed:", error);
       toast.error(`Error updating company: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   if (loading) return <KiduLoader type="Company..." />;
@@ -484,15 +509,23 @@ const CompanyEdit: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="d-flex justify-content-end gap-2 mt-4 me-2">
-                <KiduReset initialValues={initialData} setFormData={setFormData} setErrors={setErrors} />
-                <Button type="submit" style={{ backgroundColor: "#882626ff", border: "none" }} disabled={isSubmitting}>
+                {initialData && (
+                  <KiduReset initialValues={initialData} setFormData={setFormData} setErrors={setErrors} />
+                )}
+                <Button 
+                  type="submit" 
+                  style={{ backgroundColor: "#882626ff", border: "none" }} 
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? "Updating..." : "Update"}
                 </Button>
               </div>
             </Form>
 
             {/* Audit Logs */}
-            {formData.companyId && <KiduAuditLogs tableName="Company" recordId={formData.companyId.toString()} />}
+            {formData.companyId && (
+              <KiduAuditLogs tableName="Company" recordId={formData.companyId.toString()} />
+            )}
           </Card.Body>
         </Card>
 

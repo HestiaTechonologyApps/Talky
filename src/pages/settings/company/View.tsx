@@ -22,17 +22,31 @@ const CompanyView: React.FC = () => {
   useEffect(() => {
     const loadCompany = async () => {
       try {
-        const res = await CompanyService.getCompanyById(companyId!);
-        setData(res);
-      } catch {
-        toast.error("Failed to load company details.");
+        if (!companyId) {
+          toast.error("No company ID provided");
+          navigate("/dashboard/settings/company-list");
+          return;
+        }
+
+        const response = await CompanyService.getCompanyById(companyId);
+        
+        // ✅ Check if response is successful
+        if (!response || !response.isSucess) {
+          throw new Error(response?.customMessage || response?.error || "Failed to load company");
+        }
+
+        // ✅ Extract data from response.value
+        setData(response.value);
+      } catch (error: any) {
+        console.error("Failed to load company:", error);
+        toast.error(`Error loading company: ${error.message}`);
         navigate("/dashboard/settings/company-list");
       } finally {
         setLoading(false);
       }
     };
     loadCompany();
-  }, [companyId]);
+  }, [companyId, navigate]);
 
   if (loading) return <KiduLoader type="company details..." />;
 
@@ -70,11 +84,19 @@ const CompanyView: React.FC = () => {
   const handleDelete = async () => {
     setLoadingDelete(true);
     try {
-      await CompanyService.deleteCompanyById(String(data.companyId ?? ""), { ...data, isDeleted: true });
+      // ✅ Call delete service with correct parameters
+      const response = await CompanyService.deleteCompanyById(String(data.companyId ?? ""));
+      
+      // ✅ Check if response is successful
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to delete company");
+      }
+
       toast.success("Company deleted successfully");
       setTimeout(() => navigate("/dashboard/settings/company-list"), 600);
-    } catch {
-      toast.error("Failed to delete company.");
+    } catch (error: any) {
+      console.error("Delete failed:", error);
+      toast.error(`Error deleting company: ${error.message}`);
     } finally {
       setLoadingDelete(false);
       setShowConfirm(false);
@@ -126,7 +148,7 @@ const CompanyView: React.FC = () => {
           </p>
         </div>
 
-        {/* DETAILS TABLE (MATCHES STAFFVIEW STYLE) */}
+        {/* DETAILS TABLE */}
         <div className="table-responsive">
           <Table
             bordered
@@ -176,7 +198,9 @@ const CompanyView: React.FC = () => {
         </div>
 
         {/* AUDIT LOGS */}
-        <KiduAuditLogs tableName="Company" recordId={data.companyId ?? ""} />
+        {data.companyId && (
+          <KiduAuditLogs tableName="Company" recordId={data.companyId.toString()} />
+        )}
 
       </Card>
 

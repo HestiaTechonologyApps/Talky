@@ -1,35 +1,17 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState } from "react";
 import type { Company } from "../../../types/settings/Company.types";
 import CompanyService from "../../../services/settings/Company.services";
-import KiduLoader from "../../../components/KiduLoader";
 import KiduServerTable from "../../../components/Trip/KiduServerTable";
 
 const columns = [
-  { key: "companyId", label: "Company ID", type: "text" as const },
-  { key: "comapanyName", label: "Company Name", type: "text" as const },
-  { key: "email", label: "Email", type: "text" as const },
-  { key: "contactNumber", label: "Contact", type: "text" as const },
-  { key: "city", label: "City", type: "text" as const },
+  { key: "companyId", label: "Company ID" },
+  { key: "comapanyName", label: "Company Name" },
+  { key: "email", label: "Email" },
+  { key: "contactNumber", label: "Contact" },
+  { key: "city", label: "City" },
 ];
 
 const CompanyPage: React.FC = () => {
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const loadCompanies = useCallback(async () => {
-    try {
-      setLoading(true);
-      await CompanyService.getAllCompany();
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadCompanies();
-  }, [loadCompanies]);
-
-  if (loading) return <KiduLoader type="Loading Companies..." />;
-
   const fetchData = async (params: {
     pageNumber: number;
     pageSize: number;
@@ -37,24 +19,45 @@ const CompanyPage: React.FC = () => {
   }) => {
     try {
       const response = await CompanyService.getAllCompany();
-      let filteredData = response || [];
+      
+      // Check if response is successful
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to fetch companies");
+      }
 
+      // Extract data from response.value
+      const allData = response.value || [];
+      
+      if (allData.length === 0) {
+        return { data: [], total: 0 };
+      }
+
+      let filteredData = allData;
+
+      // Apply search filter if searchTerm exists
       if (params.searchTerm) {
         const s = params.searchTerm.toLowerCase();
-        filteredData = filteredData.filter(company =>
+        filteredData = allData.filter(company =>
           (company.comapanyName || "").toLowerCase().includes(s) ||
           (company.email || "").toLowerCase().includes(s) ||
           (company.city || "").toLowerCase().includes(s) ||
-          (company.companyId?.toString() || "").includes(s)
+          (company.contactNumber || "").toLowerCase().includes(s) ||
+          (company.companyId?.toString() || "").includes(params.searchTerm)
         );
       }
 
+      // Apply pagination
       const start = (params.pageNumber - 1) * params.pageSize;
-      const data = filteredData.slice(start, start + params.pageSize);
+      const end = start + params.pageSize;
+      const paginatedData = filteredData.slice(start, end);
 
-      return { data, total: filteredData.length };
-    } catch {
-      return { data: [], total: 0 };
+      return { 
+        data: paginatedData, 
+        total: filteredData.length 
+      };
+    } catch (error: any) {
+      console.error("Error fetching companies:", error);
+      throw new Error(`Failed to fetch company details: ${error.message}`);
     }
   };
 
