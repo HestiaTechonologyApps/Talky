@@ -1,10 +1,6 @@
 import { AuditTrails } from "../common/AuditLog.types";
 
 export interface StaffModel{
-      error: any;
-      isSucess: boolean;
-      customMessage: any;
-   
       staffUserId?: number;
       appUserId: number;
       bio: string;

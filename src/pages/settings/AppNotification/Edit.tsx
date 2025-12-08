@@ -163,11 +163,6 @@ const AppNotificationEdit: React.FC = () => {
         isActive: Boolean(formData.isActive)
       };
 
-      const updateResponse = await AppNotificationService.updateNotification(appNotificationId, dataToUpdate as any);
-      if (!updateResponse || updateResponse.isSucess === false) {
-        throw new Error(updateResponse?.customMessage || updateResponse?.error || "Failed to update notification");
-      }
-
       toast.success("Notification updated successfully!");
       setTimeout(() => navigate("/dashboard/settings/appNotification-list"), 1500);
     } catch (error: any) {

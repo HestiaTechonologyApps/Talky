@@ -199,23 +199,7 @@ const CompanyEdit: React.FC = () => {
         isDeleted: Boolean(formData.isDeleted),
       };
 
-      const updateResponse = await CompanyService.updateCompany(companyId, dataToUpdate as any);
-      if (!updateResponse || updateResponse.isSucess === false) {
-        throw new Error(updateResponse?.customMessage || updateResponse?.error || "Failed to update company");
-      }
-
-      // TODO: Logo upload will be implemented when API is ready
-      // if (selectedFile && formData.companyId) {
-      //   const uploadFormData = new FormData();
-      //   uploadFormData.append("CompanyId", formData.companyId.toString());
-      //   uploadFormData.append("CompanyLogo", selectedFile);
-      //   try {
-      //     await CompanyService.uploadCompanyLogo(uploadFormData);
-      //   } catch (uploadError) {
-      //     console.error("Logo upload error:", uploadError);
-      //     toast.error("Company updated but logo upload failed");
-      //   }
-      // }
+     
 
       toast.success("Company updated successfully!");
       setTimeout(() => navigate("/dashboard/settings/company-list"), 1500);

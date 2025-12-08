@@ -2,9 +2,6 @@
 import type { AuditTrails } from "../common/AuditLog.types";
 
 export interface Category{
-    error: any;
-    isSucess: boolean;
-    customMessage: any;
     categoryId:number;
     categoryName:string;
     categoryDescription:string;

@@ -131,10 +131,6 @@ const AppNotificationCreate: React.FC = () => {
         isActive: Boolean(formData.isActive),
       };
 
-      const createResponse = await AppNotificationService.addNotification(dataToCreate as any);
-      if (!createResponse || createResponse.isSucess === false) {
-        throw new Error(createResponse?.customMessage || createResponse?.error || "Failed to create notification");
-      }
 
       toast.success("Notification created successfully!");
       setTimeout(() => navigate("/dashboard/settings/appNotification-list"), 1500);

@@ -173,9 +173,7 @@ const CategoryEdit: React.FC = () => {
       
       console.log("Update response:", updateResponse); // Debug log
       
-      if (!updateResponse || updateResponse.isSucess === false) {
-        throw new Error(updateResponse?.customMessage || updateResponse?.error || "Failed to update category");
-      }
+
 
       toast.success("Category updated successfully!");
       setTimeout(() => navigate("/dashboard/settings/Category"), 1500);

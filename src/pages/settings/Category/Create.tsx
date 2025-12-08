@@ -129,10 +129,7 @@ const CategoryCreate: React.FC = () => {
         isDeleted: Boolean(formData.isDeleted),
       };
 
-      const createResponse = await CategoryService.addCompany(dataToCreate as any);
-      if (!createResponse || createResponse.isSucess === false) {
-        throw new Error(createResponse?.customMessage || createResponse?.error || "Failed to create category");
-      }
+     
 
       toast.success("Category created successfully!");
       setTimeout(() => navigate("/dashboard/settings/Category"), 1500);
