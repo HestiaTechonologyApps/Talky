@@ -9,6 +9,7 @@ import KiduPrevious from "../../../components/KiduPrevious";
 import KiduReset from "../../../components/ReuseButtons/KiduReset";
 import KiduAuditLogs from "../../../components/KiduAuditLogs";
 import { CompanyLookup } from "../../../types/settings/Company.types";
+import { Category } from "../../../types/settings/Category.type";
 
 const CategoryEdit: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const CategoryEdit: React.FC = () => {
     initialErrors[f.name] = "";
   });
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Category>({
     ...initialValues,
     categoryId: 0,
     companyName: "",
@@ -40,7 +41,7 @@ const CategoryEdit: React.FC = () => {
   const [errors, setErrors] = useState(initialErrors);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [initialData, setInitialData] = useState<any>(null);
+  const [initialData, setInitialData] = useState<Category | null>(null);
   const [companyList, setCompanyList] = useState<CompanyLookup[]>([]);
 
   const getLabel = (name: string) => {
@@ -75,22 +76,26 @@ const CategoryEdit: React.FC = () => {
           navigate("/dashboard/settings/Category"); 
           return; 
         }
+        
         const response = await CategoryService.getCategoryById(categoryId);
-        if (!response) throw new Error("No data received from server");
+        
+        if (!response || !response.isSucess) {
+          throw new Error(response?.customMessage || response?.error || "Failed to load category");
+        }
 
-        // ✅ FIX: Properly convert isDeleted to boolean
-        const formattedData = {
-          categoryId: response.categoryId || 0,
-          categoryName: response.categoryName || "",
-          categoryDescription: response.categoryDescription || "",
-          categoryTitle: response.categoryTitle || "",
-          categoryCode: response.categoryCode || "",
-          companyId: response.companyId || 0,
-          companyName: response.companyName || "",
-          isDeleted: Boolean(response.isDeleted), // ✅ Convert to boolean properly
+        const data = response.value;
+        const formattedData: Category = {
+          categoryId: data.categoryId || 0,
+          categoryName: data.categoryName || "",
+          categoryDescription: data.categoryDescription || "",
+          categoryTitle: data.categoryTitle || "",
+          categoryCode: data.categoryCode || "",
+          companyId: data.companyId || 0,
+          companyName: data.companyName || "",
+          isDeleted: Boolean(data.isDeleted),
+          auditLogs: data.auditLogs
         };
 
-        console.log("Fetched category data:", formattedData); // Debug log
         setFormData(formattedData);
         setInitialData(formattedData);
       } catch (error: any) {
@@ -104,14 +109,13 @@ const CategoryEdit: React.FC = () => {
     fetchCategory();
   }, [categoryId, navigate]);
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const target = e.target as HTMLInputElement;
     let updatedValue: any = value;
     
     if (type === "checkbox") {
       updatedValue = target.checked;
-      console.log(`${name} changed to:`, updatedValue); // Debug log
     } else if (type === "number" || name === "companyId") {
       updatedValue = value === "" ? "" : Number(value);
     }
@@ -142,7 +146,7 @@ const CategoryEdit: React.FC = () => {
   const validateForm = () => {
     let ok = true;
     fields.forEach(f => {
-      if (!validateField(f.name, formData[f.name])) ok = false;
+      if (!validateField(f.name, formData[f.name as keyof Category])) ok = false;
     });
     return ok;
   };
@@ -155,8 +159,7 @@ const CategoryEdit: React.FC = () => {
     try {
       if (!categoryId) throw new Error("No category ID available");
       
-      // ✅ FIX: Ensure isDeleted is properly handled
-      const dataToUpdate = {
+      const dataToUpdate: Category = {
         categoryId: Number(formData.categoryId),
         categoryName: formData.categoryName || "",
         categoryDescription: formData.categoryDescription || "",
@@ -164,24 +167,23 @@ const CategoryEdit: React.FC = () => {
         categoryCode: formData.categoryCode || "",
         companyId: Number(formData.companyId) || 0,
         companyName: formData.companyName || "",
-        isDeleted: formData.isDeleted === true, // ✅ Explicitly check for true
+        isDeleted: Boolean(formData.isDeleted),
       };
 
-      console.log("Submitting data:", dataToUpdate); // Debug log
-
-      const updateResponse = await CategoryService.updateCategory(categoryId, dataToUpdate as any);
+      const response = await CategoryService.updateCategory(categoryId, dataToUpdate);
       
-      console.log("Update response:", updateResponse); // Debug log
-      
-
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to update category");
+      }
 
       toast.success("Category updated successfully!");
       setTimeout(() => navigate("/dashboard/settings/Category"), 1500);
     } catch (error: any) {
       console.error("Update failed:", error);
       toast.error(`Error updating category: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   if (loading) return <KiduLoader type="Category..." />;
@@ -202,7 +204,6 @@ const CategoryEdit: React.FC = () => {
               <Row className="mb-3">
                 <Col xs={12}>
                   <Row className="g-2">
-                    {/* Category Name */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("categoryName")}</Form.Label>
                       <Form.Control 
@@ -217,7 +218,6 @@ const CategoryEdit: React.FC = () => {
                       {errors.categoryName && <div className="text-danger small">{errors.categoryName}</div>}
                     </Col>
 
-                    {/* Category Description */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("categoryDescription")}</Form.Label>
                       <Form.Control 
@@ -232,7 +232,6 @@ const CategoryEdit: React.FC = () => {
                       {errors.categoryDescription && <div className="text-danger small">{errors.categoryDescription}</div>}
                     </Col>
 
-                    {/* Category Title */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("categoryTitle")}</Form.Label>
                       <Form.Control 
@@ -247,7 +246,6 @@ const CategoryEdit: React.FC = () => {
                       {errors.categoryTitle && <div className="text-danger small">{errors.categoryTitle}</div>}
                     </Col>
 
-                    {/* Category Code */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("categoryCode")}</Form.Label>
                       <Form.Control 
@@ -262,7 +260,6 @@ const CategoryEdit: React.FC = () => {
                       {errors.categoryCode && <div className="text-danger small">{errors.categoryCode}</div>}
                     </Col>
 
-                    {/* Company Dropdown */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("companyId")}</Form.Label>
                       <Form.Select
@@ -285,7 +282,6 @@ const CategoryEdit: React.FC = () => {
                 </Col>
               </Row>
 
-              {/* Switches Section */}
               <Row className="mb-3 mx-1">
                 <Col xs={12}>
                   <div className="d-flex flex-wrap gap-3">
@@ -302,7 +298,6 @@ const CategoryEdit: React.FC = () => {
                 </Col>
               </Row>
 
-              {/* Action Buttons */}
               <div className="d-flex justify-content-end gap-2 mt-4 me-2">
                 <KiduReset initialValues={initialData} setFormData={setFormData} setErrors={setErrors} />
                 <Button type="submit" style={{ backgroundColor: "#882626ff", border: "none" }} disabled={isSubmitting}>
@@ -311,7 +306,6 @@ const CategoryEdit: React.FC = () => {
               </div>
             </Form>
 
-            {/* Audit Logs */}
             {formData.categoryId && <KiduAuditLogs tableName="Category" recordId={formData.categoryId.toString()} />}
           </Card.Body>
         </Card>

@@ -3,15 +3,15 @@ import { Card, Form, Button, Row, Col, Image } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { FaPen, FaStar } from "react-icons/fa";
-import { getFullImageUrl } from "../../constants/API_ENDPOINTS";
-import { KiduValidation } from "../../components/KiduValidation";
-import StaffService from "../../services/Staff/Staff.Services";
-import defaultProfile from "../../assets/Images/profile.jpeg";
-import { StaffModel } from "../../types/Staff/StaffType";
-import KiduLoader from "../../components/KiduLoader";
-import KiduPrevious from "../../components/KiduPrevious";
-import KiduReset from "../../components/ReuseButtons/KiduReset";
-import KiduAuditLogs from "../../components/KiduAuditLogs";
+import { getFullImageUrl } from "../../../constants/API_ENDPOINTS";
+import { KiduValidation } from "../../../components/KiduValidation";
+import StaffService from "../../../services/Staff/Staff.Services";
+import defaultProfile from "../../../assets/Images/profile.jpeg";
+import { StaffModel } from "../../../types/Staff/StaffType";
+import KiduLoader from "../../../components/KiduLoader";
+import KiduPrevious from "../../../components/KiduPrevious";
+import KiduReset from "../../../components/ReuseButtons/KiduReset";
+import KiduAuditLogs from "../../../components/KiduAuditLogs";
 
 const StaffEdit: React.FC = () => {
   const navigate = useNavigate();

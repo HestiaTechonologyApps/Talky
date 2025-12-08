@@ -118,7 +118,7 @@ const CategoryCreate: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const dataToCreate = {
+      const dataToCreate: Category = {
         categoryId: 0,
         categoryName: formData.categoryName || "",
         categoryDescription: formData.categoryDescription || "",
@@ -129,15 +129,20 @@ const CategoryCreate: React.FC = () => {
         isDeleted: Boolean(formData.isDeleted),
       };
 
-     
+      const response = await CategoryService.addCategory(dataToCreate);
+      
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to create category");
+      }
 
       toast.success("Category created successfully!");
       setTimeout(() => navigate("/dashboard/settings/Category"), 1500);
     } catch (error: any) {
       console.error("Create failed:", error);
       toast.error(`Error creating category: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   return (
@@ -156,7 +161,6 @@ const CategoryCreate: React.FC = () => {
               <Row className="mb-3">
                 <Col xs={12}>
                   <Row className="g-2">
-                    {/* Category Name */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("categoryName")}</Form.Label>
                       <Form.Control 
@@ -171,7 +175,6 @@ const CategoryCreate: React.FC = () => {
                       {errors.categoryName && <div className="text-danger small">{errors.categoryName}</div>}
                     </Col>
 
-                    {/* Category Description */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("categoryDescription")}</Form.Label>
                       <Form.Control 
@@ -186,7 +189,6 @@ const CategoryCreate: React.FC = () => {
                       {errors.categoryDescription && <div className="text-danger small">{errors.categoryDescription}</div>}
                     </Col>
 
-                    {/* Category Title */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("categoryTitle")}</Form.Label>
                       <Form.Control 
@@ -201,7 +203,6 @@ const CategoryCreate: React.FC = () => {
                       {errors.categoryTitle && <div className="text-danger small">{errors.categoryTitle}</div>}
                     </Col>
 
-                    {/* Category Code */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("categoryCode")}</Form.Label>
                       <Form.Control 
@@ -216,7 +217,6 @@ const CategoryCreate: React.FC = () => {
                       {errors.categoryCode && <div className="text-danger small">{errors.categoryCode}</div>}
                     </Col>
 
-                    {/* Company Dropdown */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("companyId")}</Form.Label>
                       <Form.Select
@@ -239,7 +239,6 @@ const CategoryCreate: React.FC = () => {
                 </Col>
               </Row>
 
-              {/* Switches Section */}
               <Row className="mb-3 mx-1">
                 <Col xs={12}>
                   <div className="d-flex flex-wrap gap-3">
@@ -256,7 +255,6 @@ const CategoryCreate: React.FC = () => {
                 </Col>
               </Row>
 
-              {/* Action Buttons */}
               <div className="d-flex justify-content-end gap-2 mt-4 me-2">
                 <KiduReset initialValues={initialData} setFormData={setFormData} setErrors={setErrors} />
                 <Button type="submit" style={{ backgroundColor: "#882626ff", border: "none" }} disabled={isSubmitting}>

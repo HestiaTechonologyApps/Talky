@@ -1,8 +1,8 @@
 import React from "react";
-import StaffService from "../../services/Staff/Staff.Services";
-import { StaffModel } from "../../types/Staff/StaffType";
-import KiduServerTable from "../../components/Trip/KiduServerTable";
-import { getFullImageUrl } from "../../constants/API_ENDPOINTS";
+import StaffService from "../../../services/Staff/Staff.Services";
+import { StaffModel } from "../../../types/Staff/StaffType";
+import KiduServerTable from "../../../components/Trip/KiduServerTable";
+import { getFullImageUrl } from "../../../constants/API_ENDPOINTS";
 
 const columns = [
   { key: "staffUserId", label: "Staff ID", type: "text" as const },

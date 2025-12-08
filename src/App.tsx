@@ -36,9 +36,9 @@ import EditPurchasecoupon from './pages/settings/Purchasecoupon/Edit';
 import ViewPurchasecoupon from './pages/settings/Purchasecoupon/view';
 
 //user
-import StaffList from './pages/Staff/List';
-import StaffView from './pages/Staff/View';
-import StaffEdit from './pages/Staff/Edit';
+import StaffList from './pages/Staffs/Staff-List/List';
+import StaffView from './pages/Staffs/Staff-List/View';
+import StaffEdit from './pages/Staffs/Staff-List/Edit';
 
 //user Recharge
 import UserRechargeListPage from './pages/Users/UserRecharge/List';
@@ -105,7 +105,9 @@ function App() {
           <Route path="staff/staff-list" element={<StaffList />} />
           <Route path="staff/staff-view/:staffUserId" element={<StaffView />} />
           <Route path="staff/staff-edit/:staffUserId" element={<StaffEdit />} />
-
+          {/* Wallet-Withdrawal */}
+          <Route path="wallet-withdrawal/list" element={<UserRechargeListPage />} />
+          <Route path="wallet-withdrawal/view" element={<ViewUserRecharge />} />
           {/*App Notificatin*/}
           <Route path="settings/appNotification-list" element={<AppNotiicationList />} />
           <Route path="settings/create-appNotification" element={< AppNotificationCreate />} />
@@ -122,7 +124,6 @@ function App() {
           <Route path="settings/Category" element={<Category />} />
           <Route path="settings/create-Category" element={< CategoryCreate />} />
           <Route path="settings/edit-Category/:categoryId" element={< CategoryEdit />} />
-         
           <Route path="settings/view-Category/:categoryId" element={< CategoryView />} />
 
         </Route>

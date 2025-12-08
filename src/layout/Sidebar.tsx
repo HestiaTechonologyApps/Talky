@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Nav, Navbar, Container, Collapse } from "react-bootstrap";
 import { NavLink, useNavigate } from "react-router-dom";
-import { BiCategory } from "react-icons/bi";import { 
+import { BiCategory } from "react-icons/bi";
+import { 
     BsPeople, 
     BsGear, 
     BsChevronDown, 
@@ -22,7 +23,8 @@ import { BiCategory } from "react-icons/bi";import {
     BsTicketPerforated,
     BsCalendar3,
     BsBell,
-    BsSpeedometer2
+    BsSpeedometer2,
+    BsCashCoin
 } from "react-icons/bs";
 import { BiLogOut } from "react-icons/bi";
 import AuthService from "../services/common/Authservices";
@@ -46,6 +48,7 @@ const Sidebar: React.FC = () => {
         { label: "Staff List", path: "/dashboard/staff/staff-list", icon: <BsPeopleFill /> },
         { label: "Staff KYC", path: "/dashboard/staffs/staff-tyc", icon: <BsFileText /> },
         { label: "Staff Reports", path: "/dashboard/staffs/staff-reports", icon: <BsClipboardData /> },
+        { label: "Wallet Withdrawal", path: "/dashboard/wallet-withdrawal/list", icon: <BsCashCoin /> },
     ];
 
     const accountsSubMenu = [

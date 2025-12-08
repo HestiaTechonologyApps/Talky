@@ -9,10 +9,9 @@ const columns = [
   { key: "categoryDescription", label: "Description" },
   { key: "categoryTitle", label: "Title" },
   { key: "categoryCode", label: "Code" },
-  { key: "companyId", label: "Company ID" }
+  { key: "companyName", label: "Company" }
 ];
 
-// Format text (fallback for empty fields)
 const formatValue = (value: any) => {
   return value ? value : "-";
 };
@@ -28,31 +27,28 @@ const CategoryList: React.FC = () => {
     searchTerm: string;
   }) => {
     try {
-      console.log("🔄 Fetching categories from API..."); // Debug log
-      const response: Category[] = await CategoryService.getAllCategory();
+      // Fetch data - now returns CustomResponse<Category[]>
+      const response = await CategoryService.getAllCategory();
 
-      console.log("📦 Raw API response:", response); // Debug log
-      console.log("📊 Response length:", response?.length); // Debug log
-      console.log("📋 Full response object:", JSON.stringify(response)); // Debug log
+      // Check if response is successful
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to fetch categories");
+      }
 
-      if (!response || response.length === 0) {
-        console.warn("⚠️ No data received from API");
+      // Extract the actual data array from response.value
+      const allData = response.value || [];
+
+      if (allData.length === 0) {
         return { data: [], total: 0 };
       }
 
-      // ✅ FILTER OUT DELETED ITEMS FIRST
-      let filteredData = response.filter((c) => {
-        // Filter out items where isDeleted is true, 1, or any truthy value
-        const isDeletedValue = c.isDeleted;
-        return !isDeletedValue; // Keep only non-deleted items
-      });
+      // FILTER OUT DELETED ITEMS
+      let filtered = allData.filter((c) => !c.isDeleted);
 
-      console.log("After isDeleted filter:", filteredData.length); // Debug log
-
-      // ✅ THEN APPLY SEARCH FILTER
+      // SEARCH
       if (searchTerm) {
         const s = searchTerm.toLowerCase();
-        filteredData = filteredData.filter(
+        filtered = filtered.filter(
           (c) =>
             c.categoryName?.toLowerCase().includes(s) ||
             c.categoryCode?.toLowerCase().includes(s) ||
@@ -60,31 +56,27 @@ const CategoryList: React.FC = () => {
         );
       }
 
-      console.log("After search filter:", filteredData.length); // Debug log
-
       // Format rows
-      const formattedData = filteredData.map((item) => ({
+      const formattedData = filtered.map((item) => ({
         ...item,
         categoryName: formatValue(item.categoryName),
         categoryDescription: formatValue(item.categoryDescription),
         categoryTitle: formatValue(item.categoryTitle),
         categoryCode: formatValue(item.categoryCode),
-        companyId: formatValue(item.companyId)
+        companyName: formatValue(item.companyName)
       }));
 
       const total = formattedData.length;
 
-      // PAGINATION
-      const start = (pageNumber - 1) * pageSize;
-      const end = start + pageSize;
-      const paginatedRows = formattedData.slice(start, end);
+      // Pagination
+      const startIndex = (pageNumber - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedData = formattedData.slice(startIndex, endIndex);
 
-      console.log("Final paginated data:", paginatedRows); // Debug log
-
-      return { data: paginatedRows, total };
-    } catch (err) {
-      console.error("Error fetching category details:", err);
-      throw new Error("Failed to load category details.");
+      return { data: paginatedData, total };
+    } catch (err: any) {
+      console.error("Error fetching categories:", err);
+      throw new Error("Failed to fetch category details.");
     }
   };
 

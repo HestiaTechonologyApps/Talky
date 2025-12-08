@@ -3,13 +3,13 @@ import { Card, Table, Image, Button, Modal, Spinner } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
-import KiduLoader from "../../components/KiduLoader";
-import KiduPrevious from "../../components/KiduPrevious";
-import defaultProfile from "../../assets/Images/profile.jpeg";
-import { StaffModel } from "../../types/Staff/StaffType";
-import StaffService from "../../services/Staff/Staff.Services";
-import { getFullImageUrl } from "../../constants/API_ENDPOINTS";
-import KiduAuditLogs from "../../components/KiduAuditLogs";
+import KiduLoader from "../../../components/KiduLoader";
+import KiduPrevious from "../../../components/KiduPrevious";
+import defaultProfile from "../../../assets/Images/profile.jpeg";
+import { StaffModel } from "../../../types/Staff/StaffType";
+import StaffService from "../../../services/Staff/Staff.Services";
+import { getFullImageUrl } from "../../../constants/API_ENDPOINTS";
+import KiduAuditLogs from "../../../components/KiduAuditLogs";
 
 const StaffView: React.FC = () => {
   const navigate = useNavigate();
