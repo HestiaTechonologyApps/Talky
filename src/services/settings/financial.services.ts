@@ -1,34 +1,47 @@
-import React from 'react';
-import { FinancialYear } from '../../types/settings/Financial.type';
-import { CustomResponse } from '../../types/common/ApiTypes';
-import HttpService from '../common/HttpService';
-import { API_ENDPOINTS } from '../../constants/API_ENDPOINTS';
-//import HttpService from './HttpService';
+// src/services/settings/financial.services.ts
 
-//import { API_ENDPOINTS } from 'constants/API_ENDPOINTS';
-//import { CustomResponse } from 'types/ApiTypes';
-//import { FinancialYear } from 'types/FinancialYear';
+import { API_ENDPOINTS } from "../../constants/API_ENDPOINTS";
+import type { CustomResponse } from "../../types/common/ApiTypes";
+import type { FinancialYear } from "../../types/settings/Financial.type";
+import HttpService from "../common/HttpService";
 
-const FinancialYearService={
-     async getAllFinacialYear(): Promise<FinancialYear[]> {
-         const response = await HttpService.callApi<CustomResponse<FinancialYear[]>>(API_ENDPOINTS.FinacialYear.GET_ALL, 'GET');
-             return response.value;
-        },
-         async addFinancialYear(formData: FinancialYear): Promise<FinancialYear> {
-            return await HttpService.callApi<FinancialYear>(API_ENDPOINTS.FinacialYear.CREATE, 'POST', formData);
-          }, 
+class FinancialYearService {
+  static async getAllFinacialYear(): Promise<CustomResponse<FinancialYear[]>> {
+    return HttpService.callApi<CustomResponse<FinancialYear[]>>(
+      API_ENDPOINTS.FinacialYear.GET_ALL, 
+      "GET"
+    );
+  }
 
-           async getFinancialYearById(id: string): Promise<FinancialYear> {
-                const response= await HttpService.callApi<CustomResponse<FinancialYear>>(API_ENDPOINTS.FinacialYear.GET_BY_ID(id), 'GET');
-                return response.value; 
-              },
-      async editFinanceById(id: string, data: FinancialYear) {
-     return await HttpService.callApi<FinancialYear>(API_ENDPOINTS.FinacialYear.UPDATE(id), 'PUT', data);
-   },
+  static async getFinancialYearById(id: string): Promise<CustomResponse<FinancialYear>> {
+    return HttpService.callApi<CustomResponse<FinancialYear>>(
+      API_ENDPOINTS.FinacialYear.GET_BY_ID(id), 
+      "GET"
+    );
+  }
 
-   async deleteFinanceById(id: string, data: FinancialYear) {
-             return await HttpService.callApi<FinancialYear>(API_ENDPOINTS.FinacialYear.DELETE(id), 'DELETE', data);
-           },
+  static async addFinancialYear(data: FinancialYear): Promise<CustomResponse<FinancialYear>> {
+    return HttpService.callApi<CustomResponse<FinancialYear>>(
+      API_ENDPOINTS.FinacialYear.CREATE, 
+      "POST", 
+      data
+    );
+  }
+
+  static async editFinanceById(id: string, data: FinancialYear): Promise<CustomResponse<FinancialYear>> {
+    return HttpService.callApi<CustomResponse<FinancialYear>>(
+      API_ENDPOINTS.FinacialYear.UPDATE(id), 
+      "PUT", 
+      data
+    );
+  }
+
+  static async deleteFinanceById(id: string): Promise<CustomResponse<null>> {
+    return HttpService.callApi<CustomResponse<null>>(
+      API_ENDPOINTS.FinacialYear.DELETE(id), 
+      "DELETE"
+    );
+  }
 }
 
 export default FinancialYearService;

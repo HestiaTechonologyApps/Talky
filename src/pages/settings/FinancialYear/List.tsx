@@ -2,9 +2,6 @@ import React from "react";
 import FinancialYearService from "../../../services/settings/financial.services";
 import { FinancialYear } from "../../../types/settings/Financial.type";
 import KiduServerTable from "../../../components/Trip/KiduServerTable";
-//import KiduServerTable from "../../components/Trip/KiduServerTable";
-////import FinancialYearService from "../../services/FinancialYearService";
-//import { FinancialYear } from "../../types/FinancialYear";
 
 const columns = [
   { key: "financialYearId", label: "ID" },
@@ -36,17 +33,26 @@ const FinancialYearList: React.FC = () => {
     searchTerm: string;
   }) => {
     try {
-      const response: FinancialYear[] = await FinancialYearService.getAllFinacialYear();
+      // Fetch data - now returns CustomResponse<FinancialYear[]>
+      const response = await FinancialYearService.getAllFinacialYear();
 
-      if (!response || response.length === 0) {
+      // Check if response is successful
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to fetch financial years");
+      }
+
+      // Extract the actual data array from response.value
+      const allData = response.value || [];
+
+      if (allData.length === 0) {
         return { data: [], total: 0 };
       }
 
       // SEARCH
-      let filtered = response;
+      let filtered = allData;
       if (searchTerm) {
         const s = searchTerm.toLowerCase();
-        filtered = response.filter(
+        filtered = allData.filter(
           (item) =>
             item.finacialYearCode?.toLowerCase().includes(s) ||
             item.financialYearId?.toString().includes(searchTerm)
@@ -56,8 +62,8 @@ const FinancialYearList: React.FC = () => {
       // Format start & end dates
       const formattedData = filtered.map((fy) => ({
         ...fy,
-        startDate: formatDate(fy.startDate??""),
-        endDate: formatDate(fy.endDate??"")
+        startDate: formatDate(fy.startDate ?? ""),
+        endDate: formatDate(fy.endDate ?? "")
       }));
 
       const total = formattedData.length;
@@ -68,7 +74,7 @@ const FinancialYearList: React.FC = () => {
       const paginatedData = formattedData.slice(startIndex, endIndex);
 
       return { data: paginatedData, total };
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching financial years:", err);
       throw new Error("Failed to fetch financial year details.");
     }

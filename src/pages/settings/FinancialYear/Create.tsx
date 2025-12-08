@@ -27,6 +27,7 @@ const FinancialYearCreate: React.FC = () => {
   const [formData, setFormData] = useState<FinancialYear>({
     ...initialValues,
     financialYearId: 0,
+    finacialYearCode: "",
     startDate: "",
     endDate: "",
     isCurrent: false,
@@ -35,9 +36,10 @@ const FinancialYearCreate: React.FC = () => {
 
   const [errors, setErrors] = useState(initialErrors);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [initialData] = useState({
+  const [initialData] = useState<FinancialYear>({
     ...initialValues,
     financialYearId: 0,
+    finacialYearCode: "",
     startDate: "",
     endDate: "",
     isCurrent: false,
@@ -111,7 +113,7 @@ const FinancialYearCreate: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const dataToCreate = {
+      const dataToCreate: FinancialYear = {
         financialYearId: 0,
         finacialYearCode: formData.finacialYearCode || "",
         startDate: formData.startDate || "",
@@ -120,9 +122,10 @@ const FinancialYearCreate: React.FC = () => {
         isClosed: Boolean(formData.isClosed),
       };
 
-      const createResponse = await FinancialYearService.addFinancialYear(dataToCreate as any);
-      if (!createResponse || createResponse.isSucess === false) {
-        throw new Error(createResponse?.customMessage || createResponse?.error || "Failed to create financial year");
+      const response = await FinancialYearService.addFinancialYear(dataToCreate);
+      
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to create financial year");
       }
 
       toast.success("Financial Year created successfully!");
@@ -130,8 +133,9 @@ const FinancialYearCreate: React.FC = () => {
     } catch (error: any) {
       console.error("Create failed:", error);
       toast.error(`Error creating financial year: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   return (

@@ -8,6 +8,7 @@ import KiduLoader from "../../../components/KiduLoader";
 import KiduPrevious from "../../../components/KiduPrevious";
 import KiduReset from "../../../components/ReuseButtons/KiduReset";
 import KiduAuditLogs from "../../../components/KiduAuditLogs";
+import { FinancialYear } from "../../../types/settings/Financial.type";
 
 const FinancialYearEdit: React.FC = () => {
   const navigate = useNavigate();
@@ -26,9 +27,10 @@ const FinancialYearEdit: React.FC = () => {
     initialErrors[f.name] = "";
   });
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FinancialYear>({
     ...initialValues,
     financialYearId: 0,
+    finacialYearCode: "",
     startDate: "",
     endDate: "",
     isCurrent: false,
@@ -38,7 +40,7 @@ const FinancialYearEdit: React.FC = () => {
   const [errors, setErrors] = useState(initialErrors);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [initialData, setInitialData] = useState<any>(null);
+  const [initialData, setInitialData] = useState<FinancialYear | null>(null);
 
   const getLabel = (name: string) => {
     const field = fields.find(f => f.name === name);
@@ -60,16 +62,22 @@ const FinancialYearEdit: React.FC = () => {
           navigate("/dashboard/settings/financial-year"); 
           return; 
         }
+        
         const response = await FinancialYearService.getFinancialYearById(financialYearId);
-        if (!response) throw new Error("No data received from server");
+        
+        if (!response || !response.isSucess) {
+          throw new Error(response?.customMessage || response?.error || "Failed to load financial year");
+        }
 
-        const formattedData = {
-          financialYearId: response.financialYearId || 0,
-          finacialYearCode: response.finacialYearCode || "",
-          startDate: response.startDate?.split("T")[0] || "",
-          endDate: response.endDate?.split("T")[0] || "",
-          isCurrent: response.isCurrent ?? false,
-          isClosed: response.isClosed ?? false
+        const data = response.value;
+        const formattedData: FinancialYear = {
+          financialYearId: data.financialYearId || 0,
+          finacialYearCode: data.finacialYearCode || "",
+          startDate: data.startDate?.split("T")[0] || "",
+          endDate: data.endDate?.split("T")[0] || "",
+          isCurrent: data.isCurrent ?? false,
+          isClosed: data.isClosed ?? false,
+          auditLogs: data.auditLogs
         };
 
         setFormData(formattedData);
@@ -85,7 +93,7 @@ const FinancialYearEdit: React.FC = () => {
     fetchFinancialYear();
   }, [financialYearId, navigate]);
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     const target = e.target as HTMLInputElement;
     let updatedValue: any = value;
@@ -120,7 +128,7 @@ const FinancialYearEdit: React.FC = () => {
   const validateForm = () => {
     let ok = true;
     fields.forEach(f => {
-      if (!validateField(f.name, formData[f.name])) ok = false;
+      if (!validateField(f.name, formData[f.name as keyof FinancialYear])) ok = false;
     });
 
     // Custom: startDate < endDate
@@ -143,7 +151,7 @@ const FinancialYearEdit: React.FC = () => {
     try {
       if (!financialYearId) throw new Error("No financial year ID available");
       
-      const dataToUpdate = {
+      const dataToUpdate: FinancialYear = {
         financialYearId: Number(formData.financialYearId),
         finacialYearCode: formData.finacialYearCode || "",
         startDate: formData.startDate || "",
@@ -152,9 +160,10 @@ const FinancialYearEdit: React.FC = () => {
         isClosed: Boolean(formData.isClosed)
       };
 
-      const updateResponse = await FinancialYearService.editFinanceById(financialYearId, dataToUpdate as any);
-      if (!updateResponse || updateResponse.isSucess === false) {
-        throw new Error(updateResponse?.customMessage || updateResponse?.error || "Failed to update financial year");
+      const response = await FinancialYearService.editFinanceById(financialYearId, dataToUpdate);
+      
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to update financial year");
       }
 
       toast.success("Financial Year updated successfully!");
@@ -162,8 +171,9 @@ const FinancialYearEdit: React.FC = () => {
     } catch (error: any) {
       console.error("Update failed:", error);
       toast.error(`Error updating financial year: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   if (loading) return <KiduLoader type="Financial Year..." />;
