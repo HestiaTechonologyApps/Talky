@@ -9,6 +9,12 @@ export const API_ENDPOINTS = {
     EDIT: (id: string) => `${API_BASE_URL}/StaffUser/admin-update-staff?staffid=${id}`,
     DELETE: (id: string | number) => `${API_BASE_URL}/StaffUser/Delete/${id}`,
   },
+  WALLET_WITHDRAWAL: {
+    GET_ALL: `${API_BASE_URL}/WalletwithdrawalRequest`,
+    GET_BY_ID: (id: string) => `${API_BASE_URL}/WalletwithdrawalRequest/${id}`,
+    UPDATE: (id: string) => `${API_BASE_URL}/WalletwithdrawalRequest/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/WalletwithdrawalRequest/${id}`,
+  },
   PURCHASE_COUPON: {
     GET_ALL: `${API_BASE_URL}/PurchaseCoupon/GetAll`,
     GET_BY_ID: (id: string) => `${API_BASE_URL}/PurchaseCoupon/GetById/${id}`,

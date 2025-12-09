@@ -360,7 +360,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
 
   const fieldName = title ? title.replace("Select ", "") : addButtonLabel;
 
-  if (loading && data.length === 0) return <KiduLoader type="trip..." />;
+  if (loading && data.length === 0) return <KiduLoader type="talky..." />;
 
   if (error && data.length === 0) {
     return (
@@ -470,7 +470,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
                 {loading ? (
                   <tr>
                     <td colSpan={tableColumns.length} className="text-center py-4">
-                      <KiduLoader type="trip..." />
+                      <KiduLoader type="talky..." />
                     </td>
                   </tr>
                 ) : table.getRowModel().rows.length === 0 ? (

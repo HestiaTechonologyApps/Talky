@@ -26,31 +26,39 @@ const StaffList: React.FC = () => {
     searchTerm: string;
   }) => {
     try {
-      console.log("📡 Fetching staff data:", { pageNumber, pageSize, searchTerm });
-
+      // Fetch data - now returns CustomResponse<StaffModel[]>
       const response = await StaffService.getAllStaff();
 
-      if (!response || response.length === 0) {
+      // Check if response is successful
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to fetch staff");
+      }
+
+      // Extract the actual data array from response.value
+      const allData = response.value || [];
+
+      if (allData.length === 0) {
         return { data: [], total: 0 };
       }
 
-      // ✅ FILTER OUT DELETED STAFF - This is the key change
-      let transformedData = response
-        .filter((staff: StaffModel) => !staff.isDeleted) // Filter deleted staff
-        .map((staff: StaffModel) => {
-          const imageUrl = staff.profileImagePath 
-            ? getFullImageUrl(staff.profileImagePath) 
-            : null;
+      // FILTER OUT DELETED STAFF
+      let filtered = allData.filter((staff: StaffModel) => !staff.isDeleted);
 
-          return {
-            ...staff,
-            profile: imageUrl,
-            starRating: staff.starRating || 0,
-            isBlocked: staff.isBlocked,
-          };
-        });
+      // Transform data with profile images
+      let transformedData = filtered.map((staff: StaffModel) => {
+        const imageUrl = staff.profileImagePath 
+          ? getFullImageUrl(staff.profileImagePath) 
+          : null;
 
-      // Client-side search filtering
+        return {
+          ...staff,
+          profile: imageUrl,
+          starRating: staff.starRating || 0,
+          isBlocked: staff.isBlocked,
+        };
+      });
+
+      // SEARCH
       if (searchTerm) {
         const lowerSearch = searchTerm.toLowerCase();
         transformedData = transformedData.filter(
@@ -64,23 +72,17 @@ const StaffList: React.FC = () => {
 
       const total = transformedData.length;
 
-      // Client-side pagination
+      // Pagination
       const startIndex = (pageNumber - 1) * pageSize;
       const endIndex = startIndex + pageSize;
       const paginatedData = transformedData.slice(startIndex, endIndex);
-
-      console.log("✅ Staff data fetched:", {
-        total,
-        pageData: paginatedData.length,
-        deletedFiltered: response.length - transformedData.length
-      });
 
       return {
         data: paginatedData,
         total: total,
       };
-    } catch (error) {
-      console.error("❌ Error fetching staff:", error);
+    } catch (error: any) {
+      console.error("Error fetching staff:", error);
       throw new Error("Failed to load staff data");
     }
   };
@@ -95,7 +97,6 @@ const StaffList: React.FC = () => {
       addRoute="/staff-management/staff-create"
       editRoute="/dashboard/staff/staff-edit"
       viewRoute="/dashboard/staff/staff-view"
-      
       fetchData={fetchStaffData}
       rowsPerPage={15}
       showSearch={true}

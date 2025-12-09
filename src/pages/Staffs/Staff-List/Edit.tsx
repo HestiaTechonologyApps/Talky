@@ -41,13 +41,13 @@ const StaffEdit: React.FC = () => {
     initialErrors[f.name] = "";
   });
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     ...initialValues,
     staffUserId: 0, appUserId: 0, gender: "", registeredDate: new Date().toISOString(),
     referredBy: "", referralCode: "", starRating: 0, profileImagePath: "",
     lastLogin: new Date().toISOString(), isBlocked: false, isKYCCompleted: false,
     isAudioEnbaled: false, isVideoEnabled: false, isOnline: false, isDeleted: false,
-    error: undefined, isSucess: false, customMessage: undefined
+    walletBalance: 0, priority: 0
   });
 
   const [errors, setErrors] = useState(initialErrors);
@@ -74,15 +74,25 @@ const StaffEdit: React.FC = () => {
     const fetchStaff = async () => {
       try {
         setLoading(true);
-        if (!staffUserId) { toast.error("No staff ID provided"); navigate("/dashboard/staff/staff-list"); return; }
+        if (!staffUserId) { 
+          toast.error("No staff ID provided"); 
+          navigate("/dashboard/staff/staff-list"); 
+          return; 
+        }
+        
         const response = await StaffService.getStaffById(staffUserId);
-        if (!response) throw new Error("No data received from server");
+        
+        if (!response || !response.isSucess) {
+          throw new Error(response?.customMessage || response?.error || "Failed to load staff");
+        }
 
+        const data = response.value;
         const formattedData = {
-          ...response,
-          kycCompletedDate: response.kycCompletedDate ? new Date(response.kycCompletedDate).toISOString().split('T')[0] : "",
-          kycDocumentNumber: String(response.kycDocumentNumber || ""),
-          starRating: response.starRating || 0
+          ...data,
+          kycCompletedDate: data.kycCompletedDate ? new Date(data.kycCompletedDate).toISOString().split('T')[0] : "",
+          kycDocumentNumber: String(data.kycDocumentNumber || ""),
+          starRating: data.starRating || 0,
+          auditLogs: data.auditLogs
         };
 
         setFormData(formattedData);
@@ -93,12 +103,18 @@ const StaffEdit: React.FC = () => {
         console.error("Failed to load staff:", error);
         toast.error(`Error loading staff: ${error.message}`);
         navigate("/dashboard/staff/staff-list");
-      } finally { setLoading(false); }
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetchStaff();
   }, [staffUserId, navigate]);
 
-  useEffect(() => { return () => { if (previewUrl && previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl); }; }, [previewUrl]);
+  useEffect(() => { 
+    return () => { 
+      if (previewUrl && previewUrl.startsWith('blob:')) URL.revokeObjectURL(previewUrl); 
+    }; 
+  }, [previewUrl]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -118,14 +134,7 @@ const StaffEdit: React.FC = () => {
     if (type === "checkbox") {
       updatedValue = target.checked;
     } else if (type === "number") {
-      // If the value is empty, set it to empty string (not 0)
-      // This allows the user to clear the field
-      if (value === "") {
-        updatedValue = "";
-      } else {
-        // Convert to number and remove any leading zeros
-        updatedValue = Number(value);
-      }
+      updatedValue = value === "" ? "" : Number(value);
     }
     
     setFormData((prev: any) => ({ ...prev, [name]: updatedValue }));
@@ -154,7 +163,7 @@ const StaffEdit: React.FC = () => {
   const validateForm = () => {
     let ok = true;
     fields.forEach(f => {
-      if (!validateField(f.name, formData[f.name])) ok = false;
+      if (!validateField(f.name, formData[f.name as keyof StaffModel])) ok = false;
     });
     return ok;
   };
@@ -166,24 +175,44 @@ const StaffEdit: React.FC = () => {
 
     try {
       if (!staffUserId) throw new Error("No staff ID available");
+      
       const dataToUpdate = {
-        staffUserId: Number(formData.staffUserId), name: formData.name || "", email: formData.email || "",
-        mobileNumber: formData.mobileNumber || "", bio: formData.bio || "", gender: formData.gender || "",
-        address: formData.address || "", isAudioEnbaled: Boolean(formData.isAudioEnbaled),
-        isVideoEnabled: Boolean(formData.isVideoEnabled), isBlocked: Boolean(formData.isBlocked),
-        isDeleted: Boolean(formData.isDeleted), kycDocument: formData.kycDocument || "",
-        kycDocumentNumber: formData.kycDocumentNumber || "", isKYCCompleted: Boolean(formData.isKYCCompleted),
-        kycCompletedDate: formData.kycCompletedDate ? new Date(formData.kycCompletedDate).toISOString() : null,
+        staffUserId: Number(formData.staffUserId),
+        appUserId: formData.appUserId,
+        name: formData.name || "",
+        email: formData.email || "",
+        mobileNumber: formData.mobileNumber || "",
+        bio: formData.bio || "",
+        gender: formData.gender || "",
+        address: formData.address || "",
+        isAudioEnbaled: Boolean(formData.isAudioEnbaled),
+        isVideoEnabled: Boolean(formData.isVideoEnabled),
+        isBlocked: Boolean(formData.isBlocked),
+        isDeleted: Boolean(formData.isDeleted),
+        kycDocument: formData.kycDocument || "",
+        kycDocumentNumber: formData.kycDocumentNumber || "",
+        isKYCCompleted: Boolean(formData.isKYCCompleted),
+        kycCompletedDate: formData.kycCompletedDate && formData.kycCompletedDate !== "" 
+          ? new Date(formData.kycCompletedDate).toISOString() 
+          : null,
         customerCoinsPerSecondVideo: Number(formData.customerCoinsPerSecondVideo) || 0,
         customerCoinsPerSecondAudio: Number(formData.customerCoinsPerSecondAudio) || 0,
         companyCoinsPerSecondVideo: Number(formData.companyCoinsPerSecondVideo) || 0,
         companyCoinsPerSecondAudio: Number(formData.companyCoinsPerSecondAudio) || 0,
-        profileImagePath: formData.profileImagePath || "", walletBalance: Number(formData.walletBalance) || 0,
-        isOnline: Boolean(formData.isOnline), priority: Number(formData.priority) || 0
+        profileImagePath: formData.profileImagePath || "",
+        walletBalance: Number(formData.walletBalance) || 0,
+        isOnline: Boolean(formData.isOnline),
+        priority: Number(formData.priority) || 0,
+        registeredDate: formData.registeredDate,
+        lastLogin: formData.lastLogin,
+        referredBy: formData.referredBy || "",
+        referralCode: formData.referralCode || "",
+        starRating: formData.starRating || 0
       };
 
       const updateResponse = await StaffService.editStaffById(staffUserId, dataToUpdate as any);
-      if (!updateResponse || updateResponse.isSucess === false) {
+      
+      if (!updateResponse || !updateResponse.isSucess) {
         throw new Error(updateResponse?.customMessage || updateResponse?.error || "Failed to update staff");
       }
 
@@ -204,8 +233,9 @@ const StaffEdit: React.FC = () => {
     } catch (error: any) {
       console.error("Update failed:", error);
       toast.error(`Error updating staff: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const formatDate = (isoString: string | Date | null): string => {
@@ -272,7 +302,6 @@ const StaffEdit: React.FC = () => {
                 {/* Form Fields Section */}
                 <Col xs={12} md={9}>
                   <Row className="g-2">
-                    {/* Name */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("name")}</Form.Label>
                       <Form.Control size="sm" type="text" name="name" value={formData.name}
@@ -280,14 +309,12 @@ const StaffEdit: React.FC = () => {
                       {errors.name && <div className="text-danger small">{errors.name}</div>}
                     </Col>
 
-                    {/* Bio */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("bio")}</Form.Label>
                       <Form.Control size="sm" as="textarea" rows={1} name="bio" value={formData.bio}
                         onChange={handleChange} onBlur={() => validateField("bio", formData.bio)} maxLength={100} />
                     </Col>
 
-                    {/* Mobile Number */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("mobileNumber")}</Form.Label>
                       <Form.Control size="sm" type="text" name="mobileNumber" value={formData.mobileNumber}
@@ -295,21 +322,18 @@ const StaffEdit: React.FC = () => {
                       {errors.mobileNumber && <div className="text-danger small">{errors.mobileNumber}</div>}
                     </Col>
 
-                    {/* Address */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("address")}</Form.Label>
                       <Form.Control size="sm" as="textarea" rows={1} name="address" value={formData.address}
                         onChange={handleChange} onBlur={() => validateField("address", formData.address)} maxLength={100} />
                     </Col>
 
-                    {/* Email */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("email")}</Form.Label>
                       <Form.Control size="sm" type="email" name="email" value={formData.email}
                         onChange={handleChange} onBlur={() => validateField("email", formData.email)} />
                     </Col>
 
-                    {/* Wallet Balance */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("walletBalance")}</Form.Label>
                       <Form.Control size="sm" type="number" name="walletBalance" 
@@ -318,74 +342,61 @@ const StaffEdit: React.FC = () => {
                         placeholder="0" />
                     </Col>
 
-                    {/* Customer CPS Video */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("customerCoinsPerSecondVideo")}</Form.Label>
                       <Form.Control size="sm" type="number" name="customerCoinsPerSecondVideo" 
                         value={formData.customerCoinsPerSecondVideo === "" ? "" : formData.customerCoinsPerSecondVideo || ""}
-                        onChange={handleChange} onBlur={() => validateField("customerCoinsPerSecondVideo", formData.customerCoinsPerSecondVideo)} 
-                        placeholder="0" />
+                        onChange={handleChange} placeholder="0" />
                     </Col>
 
-                    {/* Customer CPS Audio */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("customerCoinsPerSecondAudio")}</Form.Label>
                       <Form.Control size="sm" type="number" name="customerCoinsPerSecondAudio" 
                         value={formData.customerCoinsPerSecondAudio === "" ? "" : formData.customerCoinsPerSecondAudio || ""}
-                        onChange={handleChange} onBlur={() => validateField("customerCoinsPerSecondAudio", formData.customerCoinsPerSecondAudio)} 
-                        placeholder="0" />
+                        onChange={handleChange} placeholder="0" />
                     </Col>
 
-                    {/* Company CPS Video */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("companyCoinsPerSecondVideo")}</Form.Label>
                       <Form.Control size="sm" type="number" name="companyCoinsPerSecondVideo" 
                         value={formData.companyCoinsPerSecondVideo === "" ? "" : formData.companyCoinsPerSecondVideo || ""}
-                        onChange={handleChange} onBlur={() => validateField("companyCoinsPerSecondVideo", formData.companyCoinsPerSecondVideo)} 
-                        placeholder="0" />
+                        onChange={handleChange} placeholder="0" />
                     </Col>
 
-                    {/* Company CPS Audio */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("companyCoinsPerSecondAudio")}</Form.Label>
                       <Form.Control size="sm" type="number" name="companyCoinsPerSecondAudio" 
                         value={formData.companyCoinsPerSecondAudio === "" ? "" : formData.companyCoinsPerSecondAudio || ""}
-                        onChange={handleChange} onBlur={() => validateField("companyCoinsPerSecondAudio", formData.companyCoinsPerSecondAudio)} 
-                        placeholder="0" />
+                        onChange={handleChange} placeholder="0" />
                     </Col>
 
-                    {/* Priority */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("priority")}</Form.Label>
                       <Form.Control size="sm" type="number" name="priority" 
                         value={formData.priority === "" ? "" : formData.priority || ""}
-                        onChange={handleChange} onBlur={() => validateField("priority", formData.priority)} 
-                        placeholder="0" />
+                        onChange={handleChange} placeholder="0" />
                     </Col>
 
-                    {/* KYC Document */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("kycDocument")}</Form.Label>
                       <Form.Select size="sm" name="kycDocument" value={formData.kycDocument}
-                        onChange={handleChange} onBlur={() => validateField("kycDocument", formData.kycDocument)}>
+                        onChange={handleChange}>
                         <option value="">-- Select Document --</option>
                         {kycDocumentOptions.map(doc => <option key={doc} value={doc}>{doc}</option>)}
                       </Form.Select>
                     </Col>
 
-                    {/* KYC Document Number */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("kycDocumentNumber")}</Form.Label>
                       <Form.Control size="sm" type="text" name="kycDocumentNumber" value={formData.kycDocumentNumber}
-                        onChange={handleChange} onBlur={() => validateField("kycDocumentNumber", formData.kycDocumentNumber)} />
+                        onChange={handleChange} />
                     </Col>
 
-                    {/* KYC Completed Date */}
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("kycCompletedDate")}</Form.Label>
                       <Form.Control size="sm" type="date" name="kycCompletedDate"
                         value={formData.kycCompletedDate ? String(formData.kycCompletedDate) : ""}
-                        onChange={handleChange} onBlur={() => validateField("kycCompletedDate", formData.kycCompletedDate)} />
+                        onChange={handleChange} />
                     </Col>
                   </Row>
                 </Col>
@@ -418,10 +429,8 @@ const StaffEdit: React.FC = () => {
                   {isSubmitting ? "Updating..." : "Update"}
                 </Button>
               </div>
-
             </Form>
 
-            {/* Audit Logs */}
             {formData.staffUserId && <KiduAuditLogs tableName="Staff" recordId={formData.staffUserId.toString()} />}
           </Card.Body>
         </Card>

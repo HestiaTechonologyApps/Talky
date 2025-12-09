@@ -23,17 +23,29 @@ const StaffView: React.FC = () => {
   useEffect(() => {
     const loadStaff = async () => {
       try {
-        const res = await StaffService.getStaffById(staffUserId!);
-        setData(res);
-      } catch {
-        toast.error("Failed to load staff details.");
+        if (!staffUserId) {
+          toast.error("No staff ID provided");
+          navigate("/dashboard/staff/staff-list");
+          return;
+        }
+
+        const response = await StaffService.getStaffById(staffUserId);
+        
+        if (!response || !response.isSucess) {
+          throw new Error(response?.customMessage || response?.error || "Failed to load staff");
+        }
+
+        setData(response.value);
+      } catch (error: any) {
+        console.error("Failed to load staff:", error);
+        toast.error(`Error: ${error.message}`);
         navigate("/dashboard/staff/staff-list");
       } finally {
         setLoading(false);
       }
     };
     loadStaff();
-  }, [staffUserId]);
+  }, [staffUserId, navigate]);
 
   if (loading) return <KiduLoader type="staff details..." />;
 
@@ -75,11 +87,25 @@ const StaffView: React.FC = () => {
   const handleDelete = async () => {
     setLoadingDelete(true);
     try {
-     await StaffService.editStaffById(String(data.staffUserId ?? ""), { ...data, isDeleted: true });
+      if (!data.staffUserId) throw new Error("No staff ID available");
+      
+      // Update staff with isDeleted = true
+      const dataToUpdate: StaffModel = {
+        ...data,
+        isDeleted: true
+      };
+
+      const response = await StaffService.editStaffById(String(data.staffUserId), dataToUpdate);
+      
+      if (!response || !response.isSucess) {
+        throw new Error(response?.customMessage || response?.error || "Failed to delete staff");
+      }
+
       toast.success("Staff deleted successfully");
       setTimeout(() => navigate("/dashboard/staff/staff-list"), 600);
-    } catch {
-      toast.error("Failed to delete staff.");
+    } catch (error: any) {
+      console.error("Delete failed:", error);
+      toast.error(`Error: ${error.message}`);
     } finally {
       setLoadingDelete(false);
       setShowConfirm(false);
@@ -130,7 +156,7 @@ const StaffView: React.FC = () => {
           </p>
         </div>
 
-        {/* DETAILS TABLE (MATCHES USERVIEW STYLE) */}
+        {/* DETAILS TABLE */}
         <div className="table-responsive">
           <Table
             bordered
@@ -179,7 +205,7 @@ const StaffView: React.FC = () => {
           </Table>
         </div>
 
-        {/* AUDIT LOGS ADDED HERE */}
+        {/* AUDIT LOGS */}
         <KiduAuditLogs tableName="Staff" recordId={data.staffUserId ?? ""} />
 
       </Card>
