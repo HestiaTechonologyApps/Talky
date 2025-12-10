@@ -62,6 +62,10 @@ import CategoryView from './pages/settings/Category/View';
 //Wallet Withdrawal
 import WalletWithdrawalList from './pages/Staffs/Wallet Withdrawal/List';
 import WalletWithdrawalView from './pages/Staffs/Wallet Withdrawal/View';
+import SystemConfigList from './pages/settings/SystemConfig/List';
+import SystemConfigCreate from './pages/settings/SystemConfig/Create';
+import SystemConfigEdit from './pages/settings/SystemConfig/Edit';
+import SystemConfigView from './pages/settings/SystemConfig/View';
 
 function App() {
 
@@ -128,6 +132,11 @@ function App() {
           <Route path="settings/edit-Category/:categoryId" element={<CategoryEdit />} />
           <Route path="settings/view-Category/:categoryId" element={<CategoryView />} />
 
+          {/* System Config */}
+          <Route path="settings/systemconfig-list" element={<SystemConfigList/>} />
+          <Route path="settings/create-systemConfig" element={<SystemConfigCreate />} />
+          <Route path="settings/edit-systemconfig/:appMasterSettingId" element={<SystemConfigEdit />} />
+          <Route path="settings/view-systemconfig/:appMasterSettingId" element={<SystemConfigView />} />
         </Route>
         
         {/* Catch-All Route for 404 */}

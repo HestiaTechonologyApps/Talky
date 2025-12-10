@@ -60,7 +60,7 @@ const Sidebar: React.FC = () => {
     const settingsSubMenu = [
         { label: "Company", path: "/dashboard/settings/company-list", icon: <BsBuilding /> },
         { label: "Company Branch", path: "/dashboard/settings/company-branch", icon: <BsBuildingAdd /> },
-        { label: "System Config", path: "/dashboard/settings/system-config", icon: <BsGearFill /> },
+        { label: "System Config", path: "/dashboard/settings/systemconfig-list", icon: <BsGearFill /> },
         { label: "Purchase Coupon", path: "/dashboard/settings/purchase-coupon-list", icon: <BsTicketPerforated /> },
         { label:'Category',path:'/dashboard/settings/Category', icon:<BiCategory />},
         { label: "Financial Year", path: "/dashboard/settings/financial-year", icon: <BsCalendar3 /> },

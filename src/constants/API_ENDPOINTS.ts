@@ -71,6 +71,15 @@ export const API_ENDPOINTS = {
     GET_BY_TABLE_AND_ID: (tableName: string, recordId: number) =>
       `${API_BASE_URL}/AuditLog/${tableName}/${recordId}`
   },
+
+  AppMasterSetting: {
+    GET_ALL: `${API_BASE_URL}/AppMasterSetting`,
+    CREATE: `${API_BASE_URL}/AppMasterSetting`,
+    GET_CompanyId: `${API_BASE_URL}/Company/GetCompanyLookUp/admin-lookUp-company`,
+    GET_BY_ID: (id: string) => `${API_BASE_URL}/AppMasterSetting/${id}`,
+    UPDATE: (id: string) => `${API_BASE_URL}/AppMasterSetting/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/AppMasterSetting/${id}`,
+  },
 };
 
 // ✅ Helper function to get full image URL
