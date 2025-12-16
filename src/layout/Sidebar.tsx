@@ -53,7 +53,6 @@ const Sidebar: React.FC = () => {
     const accountsSubMenu = [
         { label: "Payout Request", path: "/dashboard/accounts/payout-request", icon: <BsWallet2 /> },
         { label: "Invoice", path: "/dashboard/accounts/invoice", icon: <BsReceipt /> },
-        { label: "Payment Permit", path: "/dashboard/accounts/payment-permit", icon: <BsCreditCard /> },
     ];
 
     const settingsSubMenu = [
