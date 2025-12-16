@@ -40,6 +40,26 @@ const CompanyService = {
       'DELETE'
     );
   },
+
+  async uploadCompanyLogo(
+    companyId: number,
+    companyLogo: File
+  ): Promise<CustomResponse<string>> {
+  
+    const formData = new FormData();
+    formData.append("CompanyId", companyId.toString());
+    formData.append("CompanyLogo", companyLogo);
+  
+    return await HttpService.callApi<CustomResponse<string>>(
+      API_ENDPOINTS.COMPANY.COMPANYLOGO_POST,
+      "POST",
+      formData,
+      true 
+    );
+    
+  },
+  
+
 }
 
 export default CompanyService;

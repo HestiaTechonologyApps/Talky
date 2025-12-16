@@ -39,6 +39,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `${API_BASE_URL}/Company/Update/${id}`,
     CREATE: `${API_BASE_URL}/Company/Create`,
     DELETE: (id: string) => `${API_BASE_URL}/Company/Delete/${id}`,
+    COMPANYLOGO_POST: `${API_BASE_URL}/Company/UploadCompanyLogo/upload-company-logo`,
   },
   Category: {
     GET_ALL: `${API_BASE_URL}/Category/GetAll/admin-getall-category`,

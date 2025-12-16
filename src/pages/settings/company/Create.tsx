@@ -201,7 +201,7 @@ const CompanyCreate: React.FC = () => {
       
       console.log("Create API Response:", response);
       
-      // ✅ Check if response is successful (note: isSucess with one 's')
+      
       if (!response || !response.isSucess) {
         throw new Error(response?.customMessage || response?.error || "Failed to create company");
       }
