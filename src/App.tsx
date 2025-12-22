@@ -67,6 +67,12 @@ import SystemConfigCreate from './pages/settings/SystemConfig/Create';
 import SystemConfigEdit from './pages/settings/SystemConfig/Edit';
 import SystemConfigView from './pages/settings/SystemConfig/View';
 
+//Admin User
+import AdminUserList from './pages/settings/Admin Users/List';
+import CreateAdminUser from './pages/settings/Admin Users/Create';
+import EditAdminUser from './pages/settings/Admin Users/Edit';
+import ViewAdminUser from './pages/settings/Admin Users/View';
+
 function App() {
 
   return (
@@ -132,13 +138,19 @@ function App() {
           <Route path="settings/edit-Category/:categoryId" element={<CategoryEdit />} />
           <Route path="settings/view-Category/:categoryId" element={<CategoryView />} />
 
+          {/* Admin User */}
+          <Route path="settings/adminUsers-list" element={<AdminUserList />} />
+          <Route path="settings/create-AdminUser" element={<CreateAdminUser />} />
+          <Route path="settings/edit-AdminUser/:userId" element={<EditAdminUser />} />
+          <Route path="settings/view-adminUser/:userId" element={<ViewAdminUser />} />
+
           {/* System Config */}
-          <Route path="settings/systemconfig-list" element={<SystemConfigList/>} />
+          <Route path="settings/systemconfig-list" element={<SystemConfigList />} />
           <Route path="settings/create-systemConfig" element={<SystemConfigCreate />} />
           <Route path="settings/edit-systemconfig/:appMasterSettingId" element={<SystemConfigEdit />} />
           <Route path="settings/view-systemconfig/:appMasterSettingId" element={<SystemConfigView />} />
         </Route>
-        
+
         {/* Catch-All Route for 404 */}
         <Route path='*' element={<PageNotFound />} />
 

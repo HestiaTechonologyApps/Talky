@@ -56,14 +56,23 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `${API_BASE_URL}/FinancialYear/Update/${id}`,
     DELETE: (id: string) => `${API_BASE_URL}/FinancialYear/Delete/${id}`,
   },
+   ADMIN_USER: {
+    GET_ALL: `${API_BASE_URL}/User`,
+    GET_BY_ID: (id: number) => `${API_BASE_URL}/User/${id}`,
+    CREATE: `${API_BASE_URL}/User`,
+    UPDATE: (id: number) => `${API_BASE_URL}/User/${id}`,
+    DELETE: (id: number) => `${API_BASE_URL}/User/${id}`,
+    CHANGE_PASSWORD: `${API_BASE_URL}/User/ChangePassWord`,
+    UPLOAD_PROFILE_PIC: `${API_BASE_URL}/User/upload-profile-pic`,
+  },
   AppNotification: {
-  GET_ALL: `${API_BASE_URL}/AppNotification/GetAll/admin-getall-category`,
-  CREATE: `${API_BASE_URL}/AppNotification/Create`,
-  GET_BY_ID: (id: string) => `${API_BASE_URL}/AppNotification/GetById/${id}`,
-  UPDATE: (id: string) => `${API_BASE_URL}/AppNotification/Update/${id}`,
-  DELETE: (id: string) => `${API_BASE_URL}/AppNotification/Delete/${id}`,
-  UPLOAD_IMAGE: `${API_BASE_URL}/AppNotification/UploadNotificationImage/upload-notification-image`, 
-},
+    GET_ALL: `${API_BASE_URL}/AppNotification/GetAll/admin-getall-category`,
+    CREATE: `${API_BASE_URL}/AppNotification/Create`,
+    GET_BY_ID: (id: string) => `${API_BASE_URL}/AppNotification/GetById/${id}`,
+    UPDATE: (id: string) => `${API_BASE_URL}/AppNotification/Update/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/AppNotification/Delete/${id}`,
+    UPLOAD_IMAGE: `${API_BASE_URL}/AppNotification/UploadNotificationImage/upload-notification-image`,
+  },
   PURCHASE_ORDER: {
     GET_ALL: `${API_BASE_URL}/PurchaseOrder/GetAll`,
     GET_BY_ID: (id: string) => `${API_BASE_URL}/PurchaseOrder/GetById/${id}`,
@@ -73,7 +82,15 @@ export const API_ENDPOINTS = {
     GET_BY_TABLE_AND_ID: (tableName: string, recordId: number) =>
       `${API_BASE_URL}/AuditLog/${tableName}/${recordId}`
   },
-
+  ATTACHMENT: {
+    GET_BY_TABLE_AND_ID: (tableName: string, recordId: number) =>
+      `${API_BASE_URL}/Attachment/${tableName}/${recordId}`,
+    GET_BY_ID: (attachmentId: number) => `${API_BASE_URL}/Attachment/${attachmentId}`,
+    UPLOAD: `${API_BASE_URL}/Attachment/upload`,
+    DELETE: (attachmentId: number) => `${API_BASE_URL}/Attachment/${attachmentId}`,
+    GET: `${API_BASE_URL}/Attachment`,
+    DOWNLOAD: (attachmentId: number) => `${API_BASE_URL}/Attachment/download/${attachmentId}`,
+  },
   AppMasterSetting: {
     GET_ALL: `${API_BASE_URL}/AppMasterSetting`,
     CREATE: `${API_BASE_URL}/AppMasterSetting`,
@@ -82,6 +99,16 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `${API_BASE_URL}/AppMasterSetting/${id}`,
     DELETE: (id: string) => `${API_BASE_URL}/AppMasterSetting/${id}`,
   },
+   AUTH: {
+    LOGIN: `${API_BASE_URL}/UserAuth/login`,
+    REGISTER: `${API_BASE_URL}/UserAuth/register`,
+    LOGOUT: `${API_BASE_URL}/UserAuth/logout`,
+    FORGOT_PASSWORD: `${API_BASE_URL}/UserAuth/forgot-password`,
+    RESET_PASSWORD: `${API_BASE_URL}/UserAuth/reset-password`,
+    CHANGE_PASSWORD: `${API_BASE_URL}/UserAuth/change-password`,
+    ME: `${API_BASE_URL}/UserAuth/me`, // Get current user
+  },
+
 };
 
 // ✅ Helper function to get full image URL

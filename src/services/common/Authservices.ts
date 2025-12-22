@@ -2,9 +2,18 @@
 import HttpService from "./HttpService";
 import type { CustomResponse } from "../../types/common/ApiTypes";
 import { API_ENDPOINTS } from "../../constants/API_ENDPOINTS";
-import type { ForgotPasswordRequest, LoginRequest, LoginResponse } from "../../types/common/Auth.types";
+import type { 
+  ForgotPasswordRequest, 
+  LoginRequest, 
+  LoginResponse, 
+  RegisterRequest,
+  ResetPasswordRequest,
+  ChangePasswordRequest,
+  CurrentUserResponse
+} from "../../types/common/Auth.types";
 
 class AuthService {
+  // ✅ Login
   static async login(credentials: LoginRequest): Promise<CustomResponse<LoginResponse>> {
     try {
       const response = await HttpService.callApi<CustomResponse<LoginResponse>>(
@@ -56,8 +65,53 @@ class AuthService {
     }
   }
 
-  static logout(): void {
+  // ✅ Register
+  static async register(data: RegisterRequest): Promise<CustomResponse<LoginResponse>> {
+    try {
+      const response = await HttpService.callApi<CustomResponse<LoginResponse>>(
+        API_ENDPOINTS.AUTH.REGISTER,
+        "POST",
+        data,
+        true // isPublic - no token needed for registration
+      );
+
+      // Optionally auto-login after registration
+      if (response.isSucess && response.value) {
+        if (response.value.token) {
+          localStorage.setItem('jwt_token', response.value.token);
+        }
+        if (response.value.user) {
+          localStorage.setItem('user', JSON.stringify(response.value.user));
+        }
+        if (response.value.expiresAt) {
+          localStorage.setItem('token_expires_at', response.value.expiresAt);
+        }
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
+    }
+  }
+
+  // ✅ Logout
+  static async logout(): Promise<void> {
     console.log('Logging out...');
+    
+    try {
+      // Call logout endpoint
+      await HttpService.callApi<CustomResponse<void>>(
+        API_ENDPOINTS.AUTH.LOGOUT,
+        "POST",
+        {}
+      );
+    } catch (error) {
+      console.error('Logout API error:', error);
+      // Continue with local cleanup even if API call fails
+    }
+
+    // Clear local storage
     console.log('Before logout - jwt_token:', localStorage.getItem('jwt_token') !== null);
     console.log('Before logout - user:', localStorage.getItem('user') !== null);
 
@@ -70,6 +124,62 @@ class AuthService {
     console.log('Logout complete');
   }
 
+  // ✅ Forgot Password
+  static async forgotPassword(data: ForgotPasswordRequest): Promise<CustomResponse<void>> {
+    return await HttpService.callApi<CustomResponse<void>>(
+      API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
+      "POST",
+      data,
+      true // public endpoint (no token required)
+    );
+  }
+
+  // ✅ Reset Password
+  static async resetPassword(data: ResetPasswordRequest): Promise<CustomResponse<void>> {
+    return await HttpService.callApi<CustomResponse<void>>(
+      API_ENDPOINTS.AUTH.RESET_PASSWORD,
+      "POST",
+      data,
+      true // public endpoint (no token required)
+    );
+  }
+
+  // ✅ Change Password
+  static async changePassword(data: ChangePasswordRequest): Promise<CustomResponse<void>> {
+    try {
+      const response = await HttpService.callApi<CustomResponse<void>>(
+        API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
+        "POST",
+        data
+      );
+      return response;
+    } catch (error) {
+      console.error("Change password error:", error);
+      throw error;
+    }
+  }
+
+  // ✅ Get Current User (from /api/UserAuth/me)
+  static async getCurrentUserFromAPI(): Promise<CustomResponse<CurrentUserResponse>> {
+    try {
+      const response = await HttpService.callApi<CustomResponse<CurrentUserResponse>>(
+        API_ENDPOINTS.AUTH.ME,
+        "GET"
+      );
+      
+      // Update local storage with fresh user data
+      if (response.isSucess && response.value) {
+        localStorage.setItem('user', JSON.stringify(response.value));
+      }
+      
+      return response;
+    } catch (error) {
+      console.error("Get current user error:", error);
+      throw error;
+    }
+  }
+
+  // ✅ Get Current User from LocalStorage
   static getCurrentUser(): any | null {
     try {
       const userStr = localStorage.getItem('user');
@@ -89,12 +199,14 @@ class AuthService {
     }
   }
 
+  // ✅ Get Token
   static getToken(): string | null {
     const token = localStorage.getItem('jwt_token');
     console.log('Getting token, exists:', token !== null);
     return token;
   }
 
+  // ✅ Check Authentication Status
   static isAuthenticated(): boolean {
     const token = localStorage.getItem('jwt_token');
     console.log('Checking authentication, token exists:', token !== null);
@@ -120,32 +232,6 @@ class AuthService {
 
     console.log('User is authenticated');
     return true;
-  }
-
-  // change-password
-  static async changePassword(currentPassword: string, newPassword: string): Promise<CustomResponse<any>> {
-    try {
-      const payload = { currentPassword, newPassword };
-      const response = await HttpService.callApi<CustomResponse<any>>(
-        API_ENDPOINTS.AUTH.CHANGE_PASSWORD,
-        "POST",
-        payload
-      );
-      return response;
-    } catch (error) {
-      console.error("Change password error:", error);
-      throw error;
-    }
-  }
-
-  //forgot-password
-  static async forgotPassword(data: ForgotPasswordRequest): Promise<CustomResponse<void>> {
-    return await HttpService.callApi<CustomResponse<void>>(
-      API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
-      "POST",
-      data,
-      true //  public endpoint (no token required)
-    );
   }
 }
 

@@ -1,5 +1,6 @@
+// KiduAttachments.tsx
 import React, { useState, useEffect, useCallback } from "react";
-import { Button, Modal, Form, Table, Spinner, Alert, OverlayTrigger, Tooltip, Accordion } from "react-bootstrap";
+import { Button, Modal, Form, Table, Spinner, Alert, OverlayTrigger, Tooltip, Accordion, Card } from "react-bootstrap";
 import { Upload, Download, Trash2, FileText, X, FileSpreadsheet, FileImage, FileArchive, FileAudio, FileVideo, FileJson, FileCode, FileType } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import type { Attachment } from "../types/common/Attachment.types";
@@ -10,7 +11,7 @@ interface AttachmentsProps {
     recordId: string | number;
 }
 
-const Attachments: React.FC<AttachmentsProps> = ({ tableName, recordId }) => {
+const KiduAttachments: React.FC<AttachmentsProps> = ({ tableName, recordId }) => {
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -105,7 +106,6 @@ const Attachments: React.FC<AttachmentsProps> = ({ tableName, recordId }) => {
         }
     };
 
-    // ✅ Correct download call
     const handleDownload = async (attachmentId: number, fileName: string) => {
         try {
             await AttachmentService.downloadAttachment(attachmentId, fileName);
@@ -134,10 +134,10 @@ const Attachments: React.FC<AttachmentsProps> = ({ tableName, recordId }) => {
         const date = new Date(dateString);
         return date.toLocaleDateString("en-GB", {
             day: "2-digit",
-            month: "short",
+            month: "long",
             year: "numeric",
             hour: "2-digit",
-            minute: "2-digit"
+            minute: "2-digit",
         });
     };
 
@@ -174,107 +174,166 @@ const Attachments: React.FC<AttachmentsProps> = ({ tableName, recordId }) => {
 
     return (
         <>
-            <Accordion className="mt-4 custom-accordion">
+            <Accordion
+                alwaysOpen
+                className="mt-4 mb-4 custom-accordion"
+                style={{
+                    maxWidth: "100%",
+                    fontSize: "0.85rem",
+                    backgroundColor: "#f0f0f0ff",
+                }}
+            >
                 <Accordion.Item eventKey="0">
-                    <Accordion.Header>
-                        <span className="fw-bold fs-6 head-font" style={{ color: "#18575A" }}>
-                            Attachments {attachments.length > 0 ? `(${attachments.length})` : "(0)"}
-                        </span>
-                    </Accordion.Header>
+                    <Card.Header
+                        as={Accordion.Button}
+                        className="custom-attachment-header"
+                        style={{
+                            backgroundColor: "#882626ff",
+                            color: "white",
+                            width: "100%",
+                            padding: "0.5rem 1rem",
+                            borderRadius: "0.25rem",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            cursor: "pointer",
+                            height: "50px",
+                        }}
+                    >
+                        <h6 className="mb-0 fw-medium head-font">Attachments</h6>
+                    </Card.Header>
 
                     <Accordion.Body>
-                        <div className="d-flex justify-content-end mb-3">
-                            <Button size="sm" className="head-font fw-bold" style={{ backgroundColor: "#18575A", border: "none" }} onClick={() => setShowModal(true)}>
-                                <Upload size={16} className="me-1 head-font" /> Add Attachment
-                            </Button>
-                        </div>
+                        <Card
+                            style={{
+                                maxWidth: "100%",
+                                fontSize: "0.85rem",
+                                backgroundColor: "#f0f0f0ff",
+                                border: "1px solid #ccc",
+                                borderRadius: "0.5rem",
+                            }}
+                            className="shadow-sm"
+                        >
+                            <Card.Body style={{ padding: "1rem" }} className="border border-1 m-2">
+                                <div className="d-flex justify-content-end mb-3">
+                                    <Button 
+                                        size="sm" 
+                                        className="head-font fw-bold" 
+                                        style={{ backgroundColor: "#882626ff", border: "none" }} 
+                                        onClick={() => setShowModal(true)}
+                                    >
+                                        <Upload size={16} className="me-1 head-font" /> Add Attachment
+                                    </Button>
+                                </div>
 
-                        {loading ? (
-                            <div className="text-center py-4">
-                                <Spinner animation="border" variant="primary" />
-                                <p className="mt-2 text-muted">Loading attachments...</p>
-                            </div>
-                        ) : error ? (
-                            <Alert variant="danger">{error}</Alert>
-                        ) : attachments.length === 0 ? (
-                            <div className="text-center py-1">
-                                <FileText size={35} className="text-muted mb-3" />
-                                <p className="text-muted mb-0">No attachments found.</p>
-                                <p className="text-muted small">Click "Add Attachment" to upload files.</p>
-                            </div>
-                        ) : (
-                            <div className="table-responsive">
-                                <Table bordered hover responsive className="mb-0">
-                                    <thead style={{ backgroundColor: "#e9ecef" }}>
-                                        <tr className="text-center">
-                                            <th className="bg-secondary text-white" style={{ width: "5%" }}>SL</th>
-                                            <th className="bg-secondary text-white" style={{ width: "30%" }}>File Name</th>
-                                            <th className="bg-secondary text-white" style={{ width: "20%" }}>Description</th>
-                                            <th className="bg-secondary text-white" style={{ width: "10%" }}>Size</th>
-                                            <th className="bg-secondary text-white" style={{ width: "25%" }}>Uploaded</th>
-                                            <th className="bg-secondary text-white" style={{ width: "5%" }}>Actions</th>
-                                        </tr>
-                                    </thead>
+                                {loading ? (
+                                    <div className="text-center py-4">
+                                        <Spinner animation="border" variant="primary" />
+                                        <p className="mt-2 text-muted">Loading attachments...</p>
+                                    </div>
+                                ) : error ? (
+                                    <Alert variant="danger">{error}</Alert>
+                                ) : attachments.length === 0 ? (
+                                    <p className="text-center text-muted mb-0">
+                                        No attachments available.
+                                    </p>
+                                ) : (
+                                    <div className="table-responsive">
+                                        <Table bordered hover size="sm" className="align-middle">
+                                            <thead style={{ backgroundColor: "#882626ff", color: "white" }}>
+                                                <tr className="head-font text-center">
+                                                    <th style={{ width: "5%" }}>SL No</th>
+                                                    <th style={{ width: "30%" }}>File Name</th>
+                                                    <th style={{ width: "20%" }}>Description</th>
+                                                    <th style={{ width: "10%" }}>Size</th>
+                                                    <th style={{ width: "25%" }}>Uploaded</th>
+                                                    <th style={{ width: "10%" }}>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {attachments.map((attachment, idx) => (
+                                                    <tr key={attachment.attachmentId} className="head-font">
+                                                        <td className="text-center">{idx + 1}</td>
+                                                        <td>
+                                                            <div className="d-flex align-items-center gap-2">
+                                                                {getFileIcon(attachment.fileName)}
+                                                                <span className="text-truncate" style={{ maxWidth: "250px" }}>
+                                                                    {attachment.fileName}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span className="text-truncate d-inline-block" style={{ maxWidth: "200px" }}>
+                                                                {attachment.description || "-"}
+                                                            </span>
+                                                        </td>
+                                                        <td className="text-center">{attachment.fileSize}</td>
+                                                        <td className="text-center">
+                                                            <small className="text-muted">
+                                                                {formatDate(attachment.uploaddedOn)}
+                                                                <br />
+                                                                <span className="text-muted">by {attachment.uploadedBy}</span>
+                                                            </small>
+                                                        </td>
+                                                        <td>
+                                                            <div className="d-flex gap-1 justify-content-center">
+                                                                <OverlayTrigger overlay={<Tooltip>Download</Tooltip>}>
+                                                                    <Button 
+                                                                        variant="outline-primary" 
+                                                                        size="sm" 
+                                                                        onClick={() => handleDownload(attachment.attachmentId, attachment.fileName)}
+                                                                    >
+                                                                        <Download size={16} />
+                                                                    </Button>
+                                                                </OverlayTrigger>
 
-                                    <tbody>
-                                        {attachments.map((attachment, idx) => (
-                                            <tr key={attachment.attachmentId} className="text-center">
-                                                <td>{idx + 1}</td>
-                                                <td>
-                                                    <div className="d-flex align-items-center gap-2">
-                                                        {getFileIcon(attachment.fileName)}
-                                                        <span className="text-truncate" style={{ maxWidth: "250px" }}>{attachment.fileName}</span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span className="text-truncate d-inline-block" style={{ maxWidth: "300px" }}>{attachment.description || "-"}</span>
-                                                </td>
-                                                <td>{attachment.fileSize}</td>
-                                                <td>
-                                                    <small className="text-muted">
-                                                        {formatDate(attachment.uploaddedOn)}
-                                                        <br />
-                                                        <span className="text-muted">by {attachment.uploadedBy}</span>
-                                                    </small>
-                                                </td>
-                                                <td>
-                                                    <div className="d-flex gap-1 justify-content-center">
-                                                        <OverlayTrigger overlay={<Tooltip>Download</Tooltip>}>
-                                                            <Button variant="outline" size="sm" style={{ border: "1px solid #18575A" }} onClick={() => handleDownload(attachment.attachmentId, attachment.fileName)}>
-                                                                <Download size={16} color="#18575A" />
-                                                            </Button>
-                                                        </OverlayTrigger>
-
-                                                        <OverlayTrigger overlay={<Tooltip>Delete</Tooltip>}>
-                                                            <Button variant="outline-danger" size="sm" onClick={() => confirmDeleteAttachment(attachment.attachmentId)}>
-                                                                <Trash2 size={16} />
-                                                            </Button>
-                                                        </OverlayTrigger>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            </div>
-                        )}
+                                                                <OverlayTrigger overlay={<Tooltip>Delete</Tooltip>}>
+                                                                    <Button 
+                                                                        variant="outline-danger" 
+                                                                        size="sm" 
+                                                                        onClick={() => confirmDeleteAttachment(attachment.attachmentId)}
+                                                                    >
+                                                                        <Trash2 size={16} />
+                                                                    </Button>
+                                                                </OverlayTrigger>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </Card>
                     </Accordion.Body>
                 </Accordion.Item>
             </Accordion>
 
             <Modal show={showModal} onHide={handleCloseModal} centered size="lg" className="head-font">
-                <Modal.Header closeButton style={{ backgroundColor: "#18575A", color: "white" }}>
+                <Modal.Header closeButton style={{ backgroundColor: "#882626ff", color: "white" }}>
                     <Modal.Title className="fs-5"><Upload size={20} className="me-2" /> Upload Attachment</Modal.Title>
                 </Modal.Header>
 
                 <Modal.Body>
                     {uploadError && <Alert variant="danger">{uploadError}</Alert>}
 
-                    <div {...getRootProps()} style={{ border: "2px dashed #18575A", borderRadius: "8px", padding: "40px", textAlign: "center", cursor: "pointer", backgroundColor: isDragActive ? "#e8f4f5" : "#f8f9fa", transition: "all 0.3s ease" }}>
+                    <div 
+                        {...getRootProps()} 
+                        style={{ 
+                            border: "2px dashed #882626ff", 
+                            borderRadius: "8px", 
+                            padding: "40px", 
+                            textAlign: "center", 
+                            cursor: "pointer", 
+                            backgroundColor: isDragActive ? "#f8e5e5" : "#f8f9fa", 
+                            transition: "all 0.3s ease" 
+                        }}
+                    >
                         <input {...getInputProps()} />
-                        <Upload size={20} className="mb-3" style={{ color: "#18575A" }} />
+                        <Upload size={48} className="mb-3" style={{ color: "#882626ff" }} />
                         {isDragActive ? (
-                            <p className="mb-0 text-primary fw-medium">Drop the file here...</p>
+                            <p className="mb-0 fw-medium" style={{ color: "#882626ff" }}>Drop the file here...</p>
                         ) : (
                             <>
                                 <p className="mb-2 fw-medium">Drag & drop a file here, or click to select</p>
@@ -302,14 +361,26 @@ const Attachments: React.FC<AttachmentsProps> = ({ tableName, recordId }) => {
 
                     <Form.Group className="mt-3">
                         <Form.Label>Description (Optional)</Form.Label>
-                        <Form.Control as="textarea" rows={3} placeholder="Enter a description for this file..." value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} />
+                        <Form.Control 
+                            as="textarea" 
+                            rows={3} 
+                            placeholder="Enter a description for this file..." 
+                            value={description} 
+                            onChange={(e) => setDescription(e.target.value)} 
+                            maxLength={500} 
+                        />
                         <Form.Text className="text-muted">{description.length}/500 characters</Form.Text>
                     </Form.Group>
                 </Modal.Body>
 
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseModal}>Cancel</Button>
-                    <Button variant="primary" onClick={handleUpload} disabled={!selectedFile || uploading} style={{ backgroundColor: "#18575A", borderColor: "#18575A" }}>
+                    <Button 
+                        variant="primary" 
+                        onClick={handleUpload} 
+                        disabled={!selectedFile || uploading} 
+                        style={{ backgroundColor: "#882626ff", borderColor: "#882626ff" }}
+                    >
                         {uploading ? (
                             <>
                                 <Spinner size="sm" className="me-2" /> Uploading...
@@ -333,8 +404,23 @@ const Attachments: React.FC<AttachmentsProps> = ({ tableName, recordId }) => {
                     <Button variant="danger" onClick={handleDeleteConfirmed}>Yes, Delete</Button>
                 </Modal.Footer>
             </Modal>
+
+            <style>{`
+                .custom-attachment-header.accordion-button {
+                    background-color: #882626ff !important;
+                    color: white !important;
+                    box-shadow: none !important;
+                }
+                .custom-attachment-header.accordion-button:not(.collapsed) {
+                    background-color: #882626ff !important;
+                    color: white !important;
+                }
+                .custom-attachment-header.accordion-button::after {
+                    filter: invert(1);
+                }
+            `}</style>
         </>
     );
 };
 
-export default Attachments;
+export default KiduAttachments;

@@ -12,6 +12,7 @@ import KiduLoader from "../../../components/KiduLoader";
 import KiduPrevious from "../../../components/KiduPrevious";
 import KiduReset from "../../../components/ReuseButtons/KiduReset";
 import KiduAuditLogs from "../../../components/KiduAuditLogs";
+import KiduAttachments from "../../../components/KiduAttachments";
 
 const StaffEdit: React.FC = () => {
   const navigate = useNavigate();
@@ -133,6 +134,27 @@ const StaffEdit: React.FC = () => {
     
     if (type === "checkbox") {
       updatedValue = target.checked;
+      
+      // If KYC Completed is toggled ON and there's no completion date, set current date
+      if (name === "isKYCCompleted" && updatedValue === true && !formData.kycCompletedDate) {
+        setFormData((prev: any) => ({ 
+          ...prev, 
+          [name]: updatedValue,
+          kycCompletedDate: new Date().toISOString().split('T')[0]
+        }));
+        if (errors[name]) setErrors((prev: any) => ({ ...prev, [name]: "" }));
+        return;
+      }
+      // If KYC Completed is toggled OFF, clear the completion date
+      if (name === "isKYCCompleted" && updatedValue === false) {
+        setFormData((prev: any) => ({ 
+          ...prev, 
+          [name]: updatedValue,
+          kycCompletedDate: ""
+        }));
+        if (errors[name]) setErrors((prev: any) => ({ ...prev, [name]: "" }));
+        return;
+      }
     } else if (type === "number") {
       updatedValue = value === "" ? "" : Number(value);
     }
@@ -238,14 +260,27 @@ const StaffEdit: React.FC = () => {
     }
   };
 
-  const formatDate = (isoString: string | Date | null): string => {
+  const formatDate = (isoString: string | Date | null, dateOnly: boolean = false): string => {
     if (!isoString) return 'N/A';
     try {
-      const date = new Date(isoString);
+      // For date-only strings (YYYY-MM-DD), parse without timezone conversion
+      let date: Date;
+      if (typeof isoString === 'string' && isoString.length === 10 && dateOnly) {
+        const [year, month, day] = isoString.split('-').map(Number);
+        date = new Date(year, month - 1, day);
+      } else {
+        date = new Date(isoString);
+      }
+      
       if (isNaN(date.getTime())) return 'Invalid Date';
       const day = String(date.getDate()).padStart(2, '0');
       const month = date.toLocaleString("en-US", { month: "long" });
       const year = date.getFullYear();
+      
+      if (dateOnly) {
+        return `${day}-${month}-${year}`;
+      }
+      
       const time = date.toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
       return `${day}-${month}-${year}  ${time}`;
     } catch (error) {
@@ -394,9 +429,25 @@ const StaffEdit: React.FC = () => {
 
                     <Col md={4}>
                       <Form.Label className="mb-1 fw-medium small">{getLabel("kycCompletedDate")}</Form.Label>
-                      <Form.Control size="sm" type="date" name="kycCompletedDate"
-                        value={formData.kycCompletedDate ? String(formData.kycCompletedDate) : ""}
-                        onChange={handleChange} />
+                      {formData.isKYCCompleted ? (
+                        <Form.Control 
+                          size="sm" 
+                          type="text" 
+                          value={formData.kycCompletedDate ? formatDate(formData.kycCompletedDate, true) : "Not Available"}
+                          readOnly
+                          disabled
+                          style={{ backgroundColor: "#f8f9fa", cursor: "not-allowed" }}
+                        />
+                      ) : (
+                        <Form.Control 
+                          size="sm" 
+                          type="text" 
+                          value="KYC Not Completed"
+                          readOnly
+                          disabled
+                          style={{ backgroundColor: "#f8f9fa", cursor: "not-allowed", color: "#6c757d" }}
+                        />
+                      )}
                     </Col>
                   </Row>
                 </Col>
@@ -431,7 +482,12 @@ const StaffEdit: React.FC = () => {
               </div>
             </Form>
 
-            {formData.staffUserId && <KiduAuditLogs tableName="Staff" recordId={formData.staffUserId.toString()} />}
+            {formData.staffUserId && (
+              <>
+                <KiduAttachments tableName="Staff" recordId={formData.staffUserId.toString()} />
+                <KiduAuditLogs tableName="Staff" recordId={formData.staffUserId.toString()} />
+              </>
+            )}
           </Card.Body>
         </Card>
 

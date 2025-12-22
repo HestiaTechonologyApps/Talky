@@ -24,7 +24,8 @@ import {
     BsCalendar3,
     BsBell,
     BsSpeedometer2,
-    BsCashCoin
+    BsCashCoin,
+    BsPersonGear
 } from "react-icons/bs";
 import { BiLogOut } from "react-icons/bi";
 import AuthService from "../services/common/Authservices";
@@ -39,7 +40,7 @@ const Sidebar: React.FC = () => {
     };
 
     const usersSubMenu = [
-        { label: "User List", path: "user/user-list", icon: <BsListUl /> },
+        { label: "AppUser List", path: "user/user-list", icon: <BsListUl /> },
         { label: "User Recharge", path: "/dashboard/user/recharge/list", icon: <BsShieldExclamation /> },
     ];
 
@@ -51,11 +52,11 @@ const Sidebar: React.FC = () => {
     ];
 
     const accountsSubMenu = [
-        { label: "Payout Request", path: "/dashboard/accounts/payout-request", icon: <BsWallet2 /> },
         { label: "Invoice", path: "/dashboard/accounts/invoice", icon: <BsReceipt /> },
     ];
 
     const settingsSubMenu = [
+        { label: "Admin Users", path: "/dashboard/settings/adminUsers-list", icon: <BsPersonGear /> },
         { label: "Company", path: "/dashboard/settings/company-list", icon: <BsBuilding /> },
         { label: "System Config", path: "/dashboard/settings/systemconfig-list", icon: <BsGearFill /> },
         { label: "Purchase Coupon", path: "/dashboard/settings/purchase-coupon-list", icon: <BsTicketPerforated /> },
