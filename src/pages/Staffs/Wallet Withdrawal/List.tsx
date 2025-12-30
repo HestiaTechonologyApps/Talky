@@ -9,7 +9,7 @@ const columns = [
   { key: "appUserName", label: "User Name", type: "text" as const },
   { key: "coins", label: "Coins", type: "text" as const },
   { key: "amount", label: "Amount", type: "text" as const },
-  { key: "status", label: "Status", type: "text" as const },
+  { key: "status", label: "Status", type: "status" as const },
   { key: "createdAt", label: "Date", type: "date" as const },
 ];
 
@@ -21,6 +21,8 @@ const getStatusLabel = (status: number): string => {
       return "Approved";
     case 2:
       return "Rejected";
+    case 3:
+      return "Completed";
     default:
       return "Unknown";
   }

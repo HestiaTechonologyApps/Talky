@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Button, Row, Col, Container, Pagination } from "react-bootstrap";
+import { Button, Row, Col, Container, Pagination, Badge } from "react-bootstrap";
 import { FaEdit, FaEye, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import {
@@ -24,7 +24,7 @@ interface Column {
   label: string;
   enableSorting?: boolean;
   enableFiltering?: boolean;
-  type?: 'text' | 'checkbox' | 'image' | 'rating' | 'date';
+  type?: 'text' | 'checkbox' | 'image' | 'rating' | 'date' | 'status';
 }
 
 interface KiduServerTableProps {
@@ -128,6 +128,45 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
     return () => clearTimeout(timeoutId);
   }, [searchTerm, loadData]);
 
+  // Helper function to render status badge with fixed width
+  const renderStatusBadge = (status: string | number) => {
+    // Convert to lowercase string for comparison
+    const statusStr = String(status).toLowerCase();
+    
+    // Map status values to badge variants
+    let variant = "secondary";
+    let displayText = String(status);
+    
+    if (statusStr === "pending" || statusStr === "0") {
+      variant = "warning";
+      displayText = "Pending";
+    } else if (statusStr === "approved" || statusStr === "1") {
+      variant = "success";
+      displayText = "Approved";
+    } else if (statusStr === "rejected" || statusStr === "2") {
+      variant = "danger";
+      displayText = "Rejected";
+    } else if (statusStr === "completed" || statusStr === "3") {
+      variant = "info";
+      displayText = "Completed";
+    }
+    
+    return (
+      <Badge 
+        bg={variant} 
+        className="px-3 py-2" 
+        style={{ 
+          fontSize: "12px",
+          minWidth: "100px",        // Fixed minimum width for uniform sizing
+          display: "inline-block",  // Ensures width is respected
+          textAlign: "center"       // Centers text within badge
+        }}
+      >
+        {displayText}
+      </Badge>
+    );
+  };
+
   // Define columns for React Table
   const tableColumns = useMemo<ColumnDef<any>[]>(() => {
     const cols: ColumnDef<any>[] = columns.map((col) => ({
@@ -143,6 +182,11 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
         }
 
         switch (col.type) {
+          case 'status':
+            // Use the statusValue if available, otherwise use the display value
+            const statusValue = row.original.statusValue ?? rawValue;
+            return renderStatusBadge(statusValue);
+
           case 'checkbox':
             let boolValue = false;
             if (typeof rawValue === 'boolean') {
