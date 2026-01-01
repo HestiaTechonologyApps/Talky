@@ -12,5 +12,6 @@ export interface WalletWithdrawal {
   status: number; // 0 = Pending, 1 = Approved, 2 = Rejected
   isDeleted: boolean;
   companyId: number;
+  
   audiitLgs?: AuditTrails[];
 }

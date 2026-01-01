@@ -16,9 +16,8 @@ const SystemConfigEdit: React.FC = () => {
   const { appMasterSettingId } = useParams<{ appMasterSettingId: string }>();
 
   const fields = [
-    { name: "currentCompanyId", rules: { required: true, type: "select" as const, label: "Company" } },
     { name: "intCurrentFinancialYear", rules: { required: true, type: "text" as const, label: "Financial Year" } },
-    { name: "staff_To_User_Rate_Per_Second", rules: { required: true, type: "number" as const, label: "Staff to User Rate per Second" } },
+    { name: "staff_To_User_Rate_Per_Second", rules: { required: true, type: "number" as const, label: "Staff to User coins per Second" } },
     { name: "one_paisa_to_coin_rate", rules: { required: true, type: "number" as const, label: "1 Paisa to Coin Rate" } },
   ];
 

@@ -1,6 +1,6 @@
 import React from "react";
 import KiduServerTable from "../../../components/Trip/KiduServerTable";
-import WalletWithdrawalService from "../../../services/Staff/WithdrawalWithdrawal.services";
+import WalletWithdrawalService from "../../../services/Staff/WalletWithdrawal.services";
 import { WalletWithdrawal } from "../../../types/Staff/WalletWithdrawal.type";
 
 const columns = [
@@ -47,10 +47,12 @@ const WalletWithdrawalList: React.FC = () => {
     pageNumber,
     pageSize,
     searchTerm,
+    reverseOrder = false,
   }: {
     pageNumber: number;
     pageSize: number;
     searchTerm: string;
+    reverseOrder?: boolean;
   }) => {
     try {
       // Fetch data - returns CustomResponse<WalletWithdrawal[]>
@@ -91,6 +93,11 @@ const WalletWithdrawalList: React.FC = () => {
         );
       }
 
+      // REVERSE if reverseOrder is true (BEFORE pagination)
+      if (reverseOrder) {
+        transformedData = transformedData.reverse();
+      }
+
       const total = transformedData.length;
 
       // Pagination
@@ -122,6 +129,7 @@ const WalletWithdrawalList: React.FC = () => {
       showActions={true}
       showAddButton={false}
       showExport={true}
+      reverseOrder={true}
     />
   );
 };

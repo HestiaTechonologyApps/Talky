@@ -17,9 +17,8 @@ const SystemConfigCreate: React.FC = () => {
 
   // Validation field metadata
   const fields = [
-    { name: "currentCompanyId", rules: { required: true, type: "select" as const, label: "Company" } },
     { name: "intCurrentFinancialYear", rules: { required: true, type: "text" as const, label: "Financial Year" } },
-    { name: "staff_To_User_Rate_Per_Second", rules: { required: true, type: "number" as const, label: "Staff to User Rate per Second" } },
+    { name: "staff_To_User_Rate_Per_Second", rules: { required: true, type: "number" as const, label: "Staff to User coins per Second" } },
     { name: "one_paisa_to_coin_rate", rules: { required: true, type: "number" as const, label: "1 Paisa to Coin Rate" } },
   ];
 
@@ -187,24 +186,7 @@ const SystemConfigCreate: React.FC = () => {
             <Form onSubmit={handleSubmit}>
               <Row className="g-3">
 
-                {/* Company Dropdown */}
-                <Col md={6}>
-                  <Form.Label>{getLabel("currentCompanyId")}</Form.Label>
-                  <Form.Select
-                    size="sm"
-                    name="currentCompanyId"
-                    value={formData.currentCompanyId}
-                    onChange={handleChange}
-                  >
-                    <option value="">-- Select Company --</option>
-                    {companyList.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.text}
-                      </option>
-                    ))}
-                  </Form.Select>
-                  {errors.currentCompanyId && <small className="text-danger">{errors.currentCompanyId}</small>}
-                </Col>
+                
 
                 {/* Financial Year */}
                 <Col md={6}>

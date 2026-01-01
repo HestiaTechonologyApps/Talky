@@ -64,9 +64,8 @@ const SystemConfigView: React.FC = () => {
 
   const fields = [
     { key: "appMasterSettingId", label: "ID", icon: "bi-hash" },
-    { key: "currentCompanyId", label: "Company ID", icon: "bi-building" },
     { key: "intCurrentFinancialYear", label: "Financial Year", icon: "bi-calendar" },
-    { key: "staff_To_User_Rate_Per_Second", label: "Staff to User Rate / Second", icon: "bi-clock" },
+    { key: "staff_To_User_Rate_Per_Second", label: "Staff to User coins / Second", icon: "bi-clock" },
     { key: "one_paisa_to_coin_rate", label: "1 Paisa to Coin Rate", icon: "bi-currency-exchange" },
     { key: "isActive", label: "Is Active", icon: "bi-check-circle", isBoolean: true },
   ];

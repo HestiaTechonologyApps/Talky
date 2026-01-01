@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `${API_BASE_URL}/WalletwithdrawalRequest/${id}`,
     UPDATE: (id: string) => `${API_BASE_URL}/WalletwithdrawalRequest/${id}`,
     DELETE: (id: string) => `${API_BASE_URL}/WalletwithdrawalRequest/${id}`,
+    UPDATE_STATUS: `${API_BASE_URL}/WalletwithdrawalRequest/update-WithdrawalStatus`, // NEW
+    INITIATE_WITHDRAWAL: (appUserId: string) => `${API_BASE_URL}/WalletwithdrawalRequest/IntiateWithdrawal/${appUserId}`, // NEW
   },
   PURCHASE_COUPON: {
     GET_ALL: `${API_BASE_URL}/PurchaseCoupon/GetAll`,
@@ -56,7 +58,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `${API_BASE_URL}/FinancialYear/Update/${id}`,
     DELETE: (id: string) => `${API_BASE_URL}/FinancialYear/Delete/${id}`,
   },
-   ADMIN_USER: {
+  ADMIN_USER: {
     GET_ALL: `${API_BASE_URL}/User`,
     GET_BY_ID: (id: number) => `${API_BASE_URL}/User/${id}`,
     CREATE: `${API_BASE_URL}/User`,
@@ -99,36 +101,27 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `${API_BASE_URL}/AppMasterSetting/${id}`,
     DELETE: (id: string) => `${API_BASE_URL}/AppMasterSetting/${id}`,
   },
-   AUTH: {
+  AUTH: {
     LOGIN: `${API_BASE_URL}/UserAuth/login`,
     REGISTER: `${API_BASE_URL}/UserAuth/register`,
     LOGOUT: `${API_BASE_URL}/UserAuth/logout`,
     FORGOT_PASSWORD: `${API_BASE_URL}/UserAuth/forgot-password`,
     RESET_PASSWORD: `${API_BASE_URL}/UserAuth/reset-password`,
     CHANGE_PASSWORD: `${API_BASE_URL}/UserAuth/change-password`,
-    ME: `${API_BASE_URL}/UserAuth/me`, // Get current user
+    ME: `${API_BASE_URL}/UserAuth/me`,
   },
-
 };
 
-// ✅ Helper function to get full image URL
 export const getFullImageUrl = (imagePath: string | null | undefined): string => {
   if (!imagePath) return '';
-
-  // If already a complete URL, return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
-
-  // Get base URL without /api suffix
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://sreenathganga-001-site12.jtempurl.com/api';
   const cleanBaseUrl = baseUrl.replace('/api', '');
-
-  // Ensure proper path construction
   return `${cleanBaseUrl}/${imagePath.replace(/^\/+/, '')}`;
 };
 
-// ✅ Get base website URL (without /api)
 export const getBaseWebsiteUrl = (): string => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://sreenathganga-001-site12.jtempurl.com/api';
   return baseUrl.replace('/api', '');

@@ -23,8 +23,6 @@ class WalletWithdrawalService {
 
   static async getWithdrawalById(id: string): Promise<CustomResponse<WalletWithdrawal>> {
     try {
-      // WORKAROUND: The API endpoint filters by appUserId, not walletWithdrawalRequestId
-      // So we fetch all withdrawals and filter on the frontend
       console.log("Fetching all withdrawals to find ID:", id);
       const allResponse = await this.getAllWithdrawals();
       
@@ -32,7 +30,6 @@ class WalletWithdrawalService {
         throw new Error(allResponse?.customMessage || allResponse?.error || "Failed to fetch withdrawals");
       }
       
-      // Find the withdrawal request by walletWithdrawalRequestId
       const withdrawal = allResponse.value?.find(
         w => w.walletWithdrawalRequestId.toString() === id
       );
@@ -48,7 +45,6 @@ class WalletWithdrawalService {
         } as CustomResponse<WalletWithdrawal>;
       }
       
-      // If not found, return error
       console.log("Withdrawal not found with ID:", id);
       return {
         statusCode: 404,
@@ -63,33 +59,63 @@ class WalletWithdrawalService {
     }
   }
 
-  static async updateWithdrawalStatus(id: string, data: WalletWithdrawal): Promise<CustomResponse<WalletWithdrawal>> {
+  // FIXED: Correct payload structure based on API requirements
+  static async updateWithdrawalStatus(
+    walletWithdrawalRequestId: number, 
+    newStatus: number
+  ): Promise<CustomResponse<string>> {
     try {
-      // First, get the withdrawal to find its appUserId (if API needs it)
-      const withdrawal = await this.getWithdrawalById(id);
-      
-      if (!withdrawal || !withdrawal.isSucess || !withdrawal.value) {
-        throw new Error("Withdrawal request not found");
-      }
+      // The API expects both fields in the request body
+      const payload = {
+        walletWithdrawalRequestId: walletWithdrawalRequestId,
+        status: newStatus
+      };
 
-      const url = API_ENDPOINTS.WALLET_WITHDRAWAL.UPDATE(id);
-      console.log("Updating withdrawal status at:", url, "with data:", data);
-      const response = await HttpService.callApi<CustomResponse<WalletWithdrawal>>(
-        url,
-        'PUT',
-        data
+      console.log("Updating withdrawal status with payload:", payload);
+      console.log("Endpoint:", API_ENDPOINTS.WALLET_WITHDRAWAL.UPDATE_STATUS);
+      
+      const response = await HttpService.callApi<CustomResponse<string>>(
+        API_ENDPOINTS.WALLET_WITHDRAWAL.UPDATE_STATUS,
+        'PATCH',
+        payload
       );
+      
       console.log("Update withdrawal status response:", response);
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in updateWithdrawalStatus:", error);
+      
+      // Enhanced error logging
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+      }
+      
+      throw error;
+    }
+  }
+
+  // Initiate withdrawal for a user
+  static async initiateWithdrawal(appUserId: string): Promise<CustomResponse<any>> {
+    try {
+      const url = API_ENDPOINTS.WALLET_WITHDRAWAL.INITIATE_WITHDRAWAL(appUserId);
+      console.log("Initiating withdrawal at:", url);
+      
+      const response = await HttpService.callApi<CustomResponse<any>>(
+        url,
+        'GET'
+      );
+      
+      console.log("Initiate withdrawal response:", response);
+      return response;
+    } catch (error) {
+      console.error("Error in initiateWithdrawal:", error);
       throw error;
     }
   }
 
   static async deleteWithdrawal(id: string): Promise<CustomResponse<null>> {
     try {
-      // First, verify the withdrawal exists
       const withdrawal = await this.getWithdrawalById(id);
       
       if (!withdrawal || !withdrawal.isSucess || !withdrawal.value) {

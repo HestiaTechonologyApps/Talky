@@ -6,10 +6,9 @@ import KiduServerTable from "../../../components/Trip/KiduServerTable";
 // Table Columns
 const columns = [
   { key: "appMasterSettingId", label: "Setting ID" },
-  { key: "currentCompanyId", label: "Company ID" },
   { key: "intCurrentFinancialYear", label: "Financial Year" },
   { key: "isActive", label: "Active Status" },
-  { key: "staff_To_User_Rate_Per_Second", label: "Staff to User Rate" },
+  { key: "staff_To_User_Rate_Per_Second", label: "Staff to User coins" },
   { key: "one_paisa_to_coin_rate", label: "Coin Rate" },
 ];
 

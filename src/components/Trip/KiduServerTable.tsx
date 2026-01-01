@@ -48,8 +48,10 @@ interface KiduServerTableProps {
     pageNumber: number;
     pageSize: number;
     searchTerm: string;
+    reverseOrder?: boolean;
   }) => Promise<{ data: any[]; total: number }>;
   rowsPerPage?: number;
+  reverseOrder?: boolean;
 }
 
 const KiduServerTable: React.FC<KiduServerTableProps> = ({
@@ -71,6 +73,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
   showTitle = true,
   fetchData,
   rowsPerPage = 10,
+  reverseOrder = true,
 }) => {
   const tableRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -99,9 +102,10 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
           pageNumber: page,
           pageSize: rowsPerPage,
           searchTerm: search,
+          ...(reverseOrder !== undefined && { reverseOrder }), // Only include if defined
         });
 
-        setData((result.data || []).reverse());
+        setData(result.data || []);
         setTotal(result.total || 0);
       } catch (err: any) {
         console.error("❌ KiduServerTable - Error:", err);
@@ -112,7 +116,7 @@ const KiduServerTable: React.FC<KiduServerTableProps> = ({
         setLoading(false);
       }
     },
-    [fetchData, rowsPerPage]
+    [fetchData, rowsPerPage, reverseOrder]
   );
 
   useEffect(() => {
