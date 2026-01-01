@@ -1,3 +1,5 @@
+// src/pages/settings/systemConfig/SystemConfigEdit.tsx
+
 import React, { useEffect, useState } from "react";
 import { Card, Form, Button, Row, Col } from "react-bootstrap";
 import { useNavigate, useParams } from "react-router-dom";
@@ -15,27 +17,27 @@ const SystemConfigEdit: React.FC = () => {
   const navigate = useNavigate();
   const { appMasterSettingId } = useParams<{ appMasterSettingId: string }>();
 
+  // ✅ Added all fields including minimumWithdrawalCoins
   const fields = [
+    { name: "currentCompanyId", rules: { required: true, type: "select" as const, label: "Company" } },
     { name: "intCurrentFinancialYear", rules: { required: true, type: "text" as const, label: "Financial Year" } },
     { name: "staff_To_User_Rate_Per_Second", rules: { required: true, type: "number" as const, label: "Staff to User coins per Second" } },
     { name: "one_paisa_to_coin_rate", rules: { required: true, type: "number" as const, label: "1 Paisa to Coin Rate" } },
+    { name: "minimumWithdrawalCoins", rules: { required: true, type: "number" as const, label: "Minimum Withdrawal Coins" } },
   ];
 
-  // Initialize formData and errors
-  const initialValues: Record<string, any> = {};
   const initialErrors: Record<string, string> = {};
   fields.forEach(f => {
-    initialValues[f.name] = "";
     initialErrors[f.name] = "";
   });
 
   const [formData, setFormData] = useState<systemconfig>({
-    ...initialValues,
     appMasterSettingId: 0,
     currentCompanyId: "",
     intCurrentFinancialYear: "",
     staff_To_User_Rate_Per_Second: 0,
     one_paisa_to_coin_rate: 0,
+    minimumWithdrawalCoins: 0,
     isActive: true,
   });
 
@@ -51,12 +53,12 @@ const SystemConfigEdit: React.FC = () => {
     return (
       <>
         {field.rules.label}
-        {field.rules.required && <span style={{ color: "red", marginLeft: "2px" }}>*</span>}
+        {field.rules.required && <span className="text-danger ms-1">*</span>}
       </>
     );
   };
 
-  // Load company lookup list
+  // Load companies
   useEffect(() => {
     const loadCompanies = async () => {
       try {
@@ -79,16 +81,30 @@ const SystemConfigEdit: React.FC = () => {
       }
       try {
         setLoading(true);
-        const response = await SystemConfigService.getAppmasterSetting(); // Or get by ID if API supports
+        const response = await SystemConfigService.getAppmasterSetting();
         if (!response || !response.isSucess) {
           throw new Error(response?.customMessage || "Failed to load system configuration");
         }
 
-        const data = response.value.find(item => String(item.appMasterSettingId) === appMasterSettingId);
-        if (!data) throw new Error("System config not found");
+        const data = response.value.find(
+          (item: systemconfig) => String(item.appMasterSettingId) === appMasterSettingId
+        );
+        
+        if (!data) throw new Error("System configuration not found");
 
-        setFormData(data);
-        setInitialData(data);
+        // ✅ Ensure all fields are populated
+        const loadedData: systemconfig = {
+          appMasterSettingId: data.appMasterSettingId || 0,
+          currentCompanyId: data.currentCompanyId || "",
+          intCurrentFinancialYear: data.intCurrentFinancialYear || "",
+          staff_To_User_Rate_Per_Second: data.staff_To_User_Rate_Per_Second || 0,
+          one_paisa_to_coin_rate: data.one_paisa_to_coin_rate || 0,
+          minimumWithdrawalCoins: data.minimumWithdrawalCoins || 0,
+          isActive: data.isActive ?? true,
+        };
+
+        setFormData(loadedData);
+        setInitialData(loadedData);
       } catch (error: any) {
         toast.error(error.message || "Error loading system configuration");
         navigate("/dashboard/settings/systemconfig-list");
@@ -99,48 +115,69 @@ const SystemConfigEdit: React.FC = () => {
     fetchSystemConfig();
   }, [appMasterSettingId, navigate]);
 
-  // Handle form changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     const { name, value, type } = e.target;
     let updatedValue: any = value;
 
     if (type === "checkbox") {
       updatedValue = (e.target as HTMLInputElement).checked;
     } else if (type === "number") {
-      updatedValue = value === "" ? "" : Number(value);
+      updatedValue = value === "" ? 0 : Number(value);
     }
 
-    setFormData((prev: systemconfig) => ({ ...prev, [name]: updatedValue }));
-    if (errors[name]) setErrors((prev: Record<string, string>) => ({ ...prev, [name]: "" }));
+    setFormData((prev) => ({ ...prev, [name]: updatedValue }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const validateField = (name: string, value: any) => {
     const field = fields.find(f => f.name === name);
     if (!field) return true;
+
     const result = KiduValidation.validate(value, field.rules);
     if (!result.isValid) {
-      setErrors((prev: Record<string, string>) => ({ ...prev, [name]: `${field.rules.label} is required.` }));
+      setErrors((prev) => ({ 
+        ...prev, 
+        [name]: `${field.rules.label} is required.` 
+      }));
       return false;
     }
-    setErrors((prev: Record<string, string>) => ({ ...prev, [name]: "" }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
     return true;
   };
 
   const validateForm = () => {
     let ok = true;
     fields.forEach(f => {
-      if (!validateField(f.name, formData[f.name as keyof systemconfig])) ok = false;
+      if (!validateField(f.name, formData[f.name as keyof systemconfig])) {
+        ok = false;
+      }
     });
     return ok;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    
+    if (!validateForm()) {
+      toast.error("Please fill all required fields");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      const response = await SystemConfigService.updateSystemconfig(formData);
+      const payload: systemconfig = {
+        ...formData,
+        staff_To_User_Rate_Per_Second: Number(formData.staff_To_User_Rate_Per_Second),
+        one_paisa_to_coin_rate: Number(formData.one_paisa_to_coin_rate),
+        minimumWithdrawalCoins: Number(formData.minimumWithdrawalCoins),
+      };
+
+      const response = await SystemConfigService.updateSystemconfig(payload);
+      
       if (!response?.isSucess) {
         throw new Error(response?.customMessage || "Failed to update system configuration");
       }
@@ -169,6 +206,8 @@ const SystemConfigEdit: React.FC = () => {
         <Card.Body>
           <Form onSubmit={handleSubmit}>
             <Row className="g-3">
+              
+              {/* Company */}
               <Col md={6}>
                 <Form.Label>{getLabel("currentCompanyId")}</Form.Label>
                 <Form.Select
@@ -184,9 +223,12 @@ const SystemConfigEdit: React.FC = () => {
                     </option>
                   ))}
                 </Form.Select>
-                {errors.currentCompanyId && <div className="text-danger small">{errors.currentCompanyId}</div>}
+                {errors.currentCompanyId && (
+                  <small className="text-danger">{errors.currentCompanyId}</small>
+                )}
               </Col>
 
+              {/* Financial Year */}
               <Col md={6}>
                 <Form.Label>{getLabel("intCurrentFinancialYear")}</Form.Label>
                 <Form.Control
@@ -195,35 +237,63 @@ const SystemConfigEdit: React.FC = () => {
                   value={formData.intCurrentFinancialYear}
                   onChange={handleChange}
                   onBlur={() => validateField("intCurrentFinancialYear", formData.intCurrentFinancialYear)}
-                  placeholder="Enter Financial Year"
+                  placeholder="e.g., 2024-2025"
                 />
+                {errors.intCurrentFinancialYear && (
+                  <small className="text-danger">{errors.intCurrentFinancialYear}</small>
+                )}
               </Col>
 
+              {/* Staff Rate */}
               <Col md={6}>
                 <Form.Label>{getLabel("staff_To_User_Rate_Per_Second")}</Form.Label>
                 <Form.Control
                   type="number"
+                  step="0.01"
                   name="staff_To_User_Rate_Per_Second"
                   value={formData.staff_To_User_Rate_Per_Second}
                   onChange={handleChange}
-                  onBlur={() =>
-                    validateField("staff_To_User_Rate_Per_Second", formData.staff_To_User_Rate_Per_Second)
-                  }
+                  onBlur={() => validateField("staff_To_User_Rate_Per_Second", formData.staff_To_User_Rate_Per_Second)}
                 />
+                {errors.staff_To_User_Rate_Per_Second && (
+                  <small className="text-danger">{errors.staff_To_User_Rate_Per_Second}</small>
+                )}
               </Col>
 
+              {/* Coin Rate */}
               <Col md={6}>
                 <Form.Label>{getLabel("one_paisa_to_coin_rate")}</Form.Label>
                 <Form.Control
                   type="number"
+                  step="0.01"
                   name="one_paisa_to_coin_rate"
                   value={formData.one_paisa_to_coin_rate}
                   onChange={handleChange}
                   onBlur={() => validateField("one_paisa_to_coin_rate", formData.one_paisa_to_coin_rate)}
                 />
+                {errors.one_paisa_to_coin_rate && (
+                  <small className="text-danger">{errors.one_paisa_to_coin_rate}</small>
+                )}
               </Col>
 
+              {/* Minimum Withdrawal Coins - ✅ ADDED */}
               <Col md={6}>
+                <Form.Label>{getLabel("minimumWithdrawalCoins")}</Form.Label>
+                <Form.Control
+                  type="number"
+                  name="minimumWithdrawalCoins"
+                  value={formData.minimumWithdrawalCoins}
+                  onChange={handleChange}
+                  onBlur={() => validateField("minimumWithdrawalCoins", formData.minimumWithdrawalCoins)}
+                  placeholder="Enter minimum coins"
+                />
+                {errors.minimumWithdrawalCoins && (
+                  <small className="text-danger">{errors.minimumWithdrawalCoins}</small>
+                )}
+              </Col>
+
+              {/* Active Switch */}
+              <Col md={6} className="d-flex align-items-center">
                 <Form.Check
                   type="switch"
                   id="isActive"
@@ -233,18 +303,32 @@ const SystemConfigEdit: React.FC = () => {
                   onChange={handleChange}
                 />
               </Col>
+
             </Row>
 
-            <div className="d-flex justify-content-end gap-2 mt-4 me-2">
-              <KiduReset initialValues={initialData} setFormData={setFormData} setErrors={setErrors} />
-              <Button type="submit" disabled={isSubmitting} style={{ backgroundColor: "#882626ff", border: "none" }}>
+            <div className="d-flex justify-content-end gap-2 mt-4">
+              <KiduReset 
+                initialValues={initialData} 
+                setFormData={setFormData} 
+                setErrors={setErrors} 
+              />
+              <Button 
+                type="submit" 
+                disabled={isSubmitting} 
+                style={{ backgroundColor: "#882626ff", border: "none" }}
+              >
                 {isSubmitting ? "Updating..." : "Update"}
               </Button>
             </div>
           </Form>
 
-          {formData.appMasterSettingId && (
-            <KiduAuditLogs tableName="AppMasterSetting" recordId={String(formData.appMasterSettingId)} />
+          {formData.appMasterSettingId > 0 && (
+            <div className="mt-4">
+              <KiduAuditLogs 
+                tableName="AppMasterSetting" 
+                recordId={formData.appMasterSettingId} 
+              />
+            </div>
           )}
         </Card.Body>
       </Card>
