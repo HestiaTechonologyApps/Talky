@@ -83,7 +83,7 @@ function App() {
       <Routes>
         {/* Preloader */}
         <Route path='/' element={<Preloader />} />
-         <Route path="/login" element={<Landing />} />
+         <Route path="/home" element={<Landing />} />
 
         {/* Auth */}
         <Route path="/adminlogin" element={<Login />} />
