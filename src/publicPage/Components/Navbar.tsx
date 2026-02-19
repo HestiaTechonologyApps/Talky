@@ -154,7 +154,7 @@ export default function Navbar() {
                 <Button
                   className="btn-gradient d-flex align-items-center gap-2 px-4 py-2"
                   style={{ fontSize: "0.875rem" }}
-                   onClick={() => navigate('/login')}
+                   onClick={() => navigate('/adminlogin')}
                 >
                   <Phone size={15} />
                   ലോഗിൻ
@@ -200,7 +200,7 @@ export default function Navbar() {
                 <Button
                   className="btn-gradient text-center mt-2 py-2"
                   style={{ fontSize: "0.875rem" }}
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/adminlogin')}
                 >
                   ലോഗിൻ
                 </Button>

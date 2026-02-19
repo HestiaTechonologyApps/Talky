@@ -83,10 +83,10 @@ function App() {
       <Routes>
         {/* Preloader */}
         {/* <Route path='/' element={<Preloader />} /> */}
-         <Route path="/" element={<Landing />} />
+         <Route path="/login" element={<Landing />} />
 
         {/* Auth */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/adminlogin" element={<Login />} />
         <Route path='/forgot-password' element={<ForgotPassword />} />
 
         {/* DashBoard */}
