@@ -74,6 +74,7 @@ import AdminUserList from './pages/settings/Admin Users/List';
 import CreateAdminUser from './pages/settings/Admin Users/Create';
 import EditAdminUser from './pages/settings/Admin Users/Edit';
 import ViewAdminUser from './pages/settings/Admin Users/View';
+import Landing from './publicPage/Pages/Landing';
 
 function App() {
 
@@ -82,6 +83,7 @@ function App() {
       <Routes>
         {/* Preloader */}
         <Route path='/' element={<Preloader />} />
+         <Route path="/landing" element={<Landing />} />
 
         {/* Auth */}
         <Route path="/login" element={<Login />} />
