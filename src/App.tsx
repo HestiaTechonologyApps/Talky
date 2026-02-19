@@ -82,8 +82,8 @@ function App() {
     <>
       <Routes>
         {/* Preloader */}
-        <Route path='/' element={<Preloader />} />
-         <Route path="/landing" element={<Landing />} />
+        {/* <Route path='/' element={<Preloader />} /> */}
+         <Route path="/" element={<Landing />} />
 
         {/* Auth */}
         <Route path="/login" element={<Login />} />
