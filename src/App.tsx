@@ -82,7 +82,7 @@ function App() {
     <>
       <Routes>
         {/* Preloader */}
-        {/* <Route path='/' element={<Preloader />} /> */}
+        <Route path='/' element={<Preloader />} />
          <Route path="/login" element={<Landing />} />
 
         {/* Auth */}

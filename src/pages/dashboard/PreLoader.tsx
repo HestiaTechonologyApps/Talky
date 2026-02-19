@@ -9,7 +9,7 @@ const Preloader: React.FC = () => {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            navigate("/landing"); // redirect after 3 seconds
+            navigate("/login"); // redirect after 3 seconds
         }, 3000);
 
         return () => clearTimeout(timer); // cleanup
