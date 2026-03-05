@@ -25,7 +25,7 @@ const footerLinks: FooterLink[] = [
   { label: "ഫീച്ചേഴ്സ്", href: "#features" },
   { label: "എങ്ങനെ?", href: "#how" },
   { label: "ബന്ധപ്പെടൂ", href: "#contact" },
-  { label: "Privacy Policy", href: "/privacy.html" },
+  { label: "പ്രൈവസി പോളിസി", href: "/privacy.html" },
 ];
 
 export default function Footer() {
