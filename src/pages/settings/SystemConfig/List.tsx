@@ -11,6 +11,8 @@ const columns = [
   { key: "rewardCoins", label: "Reward Coins" },
   { key: "minimumWithdrawalCoins", label: "Minimum Withdrawal Coins" },
   { key: "staff_To_User_Rate_Per_Second", label: "Staff to User coins" },
+  { key: "refferalCommisionOnPurchasePercentage", label: "Commission in Purchase" },
+  { key: "refferalComminsiononPayOutPercentage", label: "Commission in Payouts" },
   { key: "one_paisa_to_coin_rate", label: "Coin Rate" },
 ];
 

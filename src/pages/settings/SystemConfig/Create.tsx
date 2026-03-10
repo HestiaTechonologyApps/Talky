@@ -24,6 +24,8 @@ const SystemConfigCreate: React.FC = () => {
     { name: "rewardCoins", rules: { required: true, type: "number" as const, label: "Reward Coins" } },
     { name: "one_paisa_to_coin_rate", rules: { required: true, type: "number" as const, label: "1 Paisa to Coin Rate" } },
     { name: "minimumWithdrawalCoins", rules: { required: true, type: "number" as const, label: "Minimum Withdrawal Coins" } },
+    { name: "refferalCommisionOnPurchasePercentage", rules: { required: true, type: "number" as const, label: "Commision in Purchase" } },
+    { name: "refferalComminsiononPayOutPercentage", rules: { required: true, type: "number" as const, label: "Commision in Payout" } },
     { name: "isActive", rules: { required: true, type: "radio" as const, label: "Active Status" } }
   ];
 
@@ -288,6 +290,36 @@ const SystemConfigCreate: React.FC = () => {
                   />
                   {errors.minimumWithdrawalCoins && (
                     <small className="text-danger">{errors.minimumWithdrawalCoins}</small>
+                  )}
+                </Col>
+
+                <Col md={6}>
+                  <Form.Label>{getLabel("refferalCommisionOnPurchasePercentage")}</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="refferalCommisionOnPurchasePercentage"
+                    value={formData.refferalCommisionOnPurchasePercentage}
+                    onChange={handleChange}
+                    onBlur={() => validateField("refferalCommisionOnPurchasePercentage", formData.refferalCommisionOnPurchasePercentage)}
+                    placeholder="Enter Commission purchase coins"
+                  />
+                  {errors.refferalCommisionOnPurchasePercentage && (
+                    <small className="text-danger">{errors.refferalCommisionOnPurchasePercentage}</small>
+                  )}
+                </Col>
+
+                 <Col md={6}>
+                  <Form.Label>{getLabel("refferalComminsiononPayOutPercentage")}</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="refferalComminsiononPayOutPercentage"
+                    value={formData.refferalComminsiononPayOutPercentage}
+                    onChange={handleChange}
+                    onBlur={() => validateField("refferalComminsiononPayOutPercentage", formData.refferalComminsiononPayOutPercentage)}
+                    placeholder="Enter Commission in payout coins"
+                  />
+                  {errors.refferalComminsiononPayOutPercentage && (
+                    <small className="text-danger">{errors.refferalComminsiononPayOutPercentage}</small>
                   )}
                 </Col>
 

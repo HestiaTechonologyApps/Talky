@@ -11,5 +11,8 @@ export interface systemconfig {
   staff_To_User_Rate_Per_Second: number;
   one_paisa_to_coin_rate: number;
   minimumWithdrawalCoins: number; // ✅ Added missing field
+  refferalCommisionOnPurchasePercentage: number;
+
+  refferalComminsiononPayOutPercentage: number;
   auditLogs?: AuditTrails[];
 }

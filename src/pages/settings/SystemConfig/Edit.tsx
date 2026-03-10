@@ -25,6 +25,8 @@ const SystemConfigEdit: React.FC = () => {
     { name: "rewardCoins", rules: { required: true, type: "number" as const, label: "Reward Coins" } },
     { name: "one_paisa_to_coin_rate", rules: { required: true, type: "number" as const, label: "1 Paisa to Coin Rate" } },
     { name: "minimumWithdrawalCoins", rules: { required: true, type: "number" as const, label: "Minimum Withdrawal Coins" } },
+     { name: "refferalCommisionOnPurchasePercentage", rules: { required: true, type: "number" as const, label: "Commission in purchase" } },
+      { name: "refferalComminsiononPayOutPercentage", rules: { required: true, type: "number" as const, label: "Commission in Payouts" } },
     { name: "isActive", rules: { required: false, type: "radio" as const, label: "Active Status" } }
   ];
 
@@ -41,6 +43,9 @@ const SystemConfigEdit: React.FC = () => {
     rewardCoins: 0, // ✅ Added
     one_paisa_to_coin_rate: 0,
     minimumWithdrawalCoins: 0,
+    refferalCommisionOnPurchasePercentage: 0,
+
+  refferalComminsiononPayOutPercentage: 0,
     isActive: true,
   });
 
@@ -104,6 +109,8 @@ const SystemConfigEdit: React.FC = () => {
           rewardCoins: data.rewardCoins || 0, // ✅ Added
           one_paisa_to_coin_rate: data.one_paisa_to_coin_rate || 0,
           minimumWithdrawalCoins: data.minimumWithdrawalCoins || 0,
+          refferalCommisionOnPurchasePercentage:data.refferalCommisionOnPurchasePercentage||0,
+          refferalComminsiononPayOutPercentage:data.refferalComminsiononPayOutPercentage||0,
           isActive: data.isActive ?? true,
         };
 
@@ -179,6 +186,8 @@ const SystemConfigEdit: React.FC = () => {
         rewardCoins: Number(formData.rewardCoins), // ✅ Added
         one_paisa_to_coin_rate: Number(formData.one_paisa_to_coin_rate),
         minimumWithdrawalCoins: Number(formData.minimumWithdrawalCoins),
+        refferalCommisionOnPurchasePercentage:Number(formData.refferalCommisionOnPurchasePercentage),
+        refferalComminsiononPayOutPercentage:Number(formData.refferalComminsiononPayOutPercentage)
       };
 
       const response = await SystemConfigService.updateSystemconfig(payload);
@@ -310,6 +319,36 @@ const SystemConfigEdit: React.FC = () => {
                 />
                 {errors.minimumWithdrawalCoins && (
                   <small className="text-danger">{errors.minimumWithdrawalCoins}</small>
+                )}
+              </Col>
+
+               <Col md={6}>
+                <Form.Label>{getLabel("refferalCommisionOnPurchasePercentage")}</Form.Label>
+                <Form.Control
+                  type="number"
+                  name="refferalCommisionOnPurchasePercentage"
+                  value={formData.refferalCommisionOnPurchasePercentage}
+                  onChange={handleChange}
+                  onBlur={() => validateField("refferalCommisionOnPurchasePercentage", formData.refferalCommisionOnPurchasePercentage)}
+                  placeholder="Enter Commission coins in purchase"
+                />
+                {errors.refferalCommisionOnPurchasePercentage && (
+                  <small className="text-danger">{errors.refferalCommisionOnPurchasePercentage}</small>
+                )}
+              </Col>
+
+               <Col md={6}>
+                <Form.Label>{getLabel("refferalComminsiononPayOutPercentage")}</Form.Label>
+                <Form.Control
+                  type="number"
+                  name="refferalComminsiononPayOutPercentage"
+                  value={formData.refferalComminsiononPayOutPercentage}
+                  onChange={handleChange}
+                  onBlur={() => validateField("refferalComminsiononPayOutPercentage", formData.refferalComminsiononPayOutPercentage)}
+                  placeholder="Enter commission coins in Payouts"
+                />
+                {errors.refferalComminsiononPayOutPercentage && (
+                  <small className="text-danger">{errors.refferalComminsiononPayOutPercentage}</small>
                 )}
               </Col>
 
