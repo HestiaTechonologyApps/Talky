@@ -25,7 +25,9 @@ import {
     BsBell,
     BsSpeedometer2,
     BsCashCoin,
-    BsPersonGear
+    BsPersonGear,
+    BsMegaphone
+    
 } from "react-icons/bs";
 import { BiLogOut } from "react-icons/bi";
 import AuthService from "../services/common/Authservices";
@@ -135,6 +137,7 @@ const Sidebar: React.FC = () => {
         { label: 'Category', path: '/dashboard/settings/Category', icon: <BiCategory /> },
         { label: "Financial Year", path: "/dashboard/settings/financial-year", icon: <BsCalendar3 /> },
         { label: "App Notification", path: "/dashboard/settings/appNotification-list", icon: <BsBell /> },
+        { label: "Promotion", path: "/dashboard/settings/promotion-list",  icon: <BsMegaphone /> },
     ];
 
     const navigate = useNavigate();

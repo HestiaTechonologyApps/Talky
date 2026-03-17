@@ -111,6 +111,14 @@ export const API_ENDPOINTS = {
     CHANGE_PASSWORD: `${API_BASE_URL}/UserAuth/change-password`,
     ME: `${API_BASE_URL}/UserAuth/me`,
   },
+  PROMOTION: {
+    GET_ALL: `${API_BASE_URL}/Promotion/GetAll`,
+    CREATE: `${API_BASE_URL}/Promotion/Create`,
+    GET_BY_ID: (id: string) => `${API_BASE_URL}/Promotion/GetById/${id}`,
+    UPDATE: (id: string) => `${API_BASE_URL}/Promotion/Update/${id}`,
+    DELETE: (id: string) => `${API_BASE_URL}/Promotion/Delete/${id}`,
+  }
+
 };
 
 export const getFullImageUrl = (imagePath: string | null | undefined): string => {

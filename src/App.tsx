@@ -76,6 +76,12 @@ import EditAdminUser from './pages/settings/Admin Users/Edit';
 import ViewAdminUser from './pages/settings/Admin Users/View';
 import Landing from './publicPage/Pages/Landing';
 
+//Promotion
+import PromotionPage from './pages/settings/Promotion/List';
+import CreatePromotion from './pages/settings/Promotion/Create';
+import PromotionEdit from './pages/settings/Promotion/Edit';
+import PromotionView from './pages/settings/Promotion/View';
+
 function App() {
 
   return (
@@ -157,6 +163,12 @@ function App() {
           <Route path="settings/create-systemConfig" element={<SystemConfigCreate />} />
           <Route path="settings/edit-systemconfig/:appMasterSettingId" element={<SystemConfigEdit />} />
           <Route path="settings/view-systemconfig/:appMasterSettingId" element={<SystemConfigView />} />
+
+          {/*Promotion*/}
+          <Route path="settings/promotion-list" element={<PromotionPage />} />
+          <Route path="settings/create-promotion" element={<CreatePromotion />} />
+          <Route path="settings/edit-promotion/:promotionId" element={<PromotionEdit />} />
+          <Route path="settings/view-promotion/:promotionId" element={<PromotionView />} />
         </Route>
 
         {/* Catch-All Route for 404 */}
