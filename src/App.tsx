@@ -81,6 +81,7 @@ import PromotionPage from './pages/settings/Promotion/List';
 import CreatePromotion from './pages/settings/Promotion/Create';
 import PromotionEdit from './pages/settings/Promotion/Edit';
 import PromotionView from './pages/settings/Promotion/View';
+import AccountDeactivate from './publicPage/AccountDeactivation/AccountDeactivation';
 
 function App() {
 
@@ -170,6 +171,8 @@ function App() {
           <Route path="settings/edit-promotion/:promotionId" element={<PromotionEdit />} />
           <Route path="settings/view-promotion/:promotionId" element={<PromotionView />} />
         </Route>
+
+        <Route path="/user/deactivate" element={<AccountDeactivate />} />
 
         {/* Catch-All Route for 404 */}
         <Route path='*' element={<PageNotFound />} />
